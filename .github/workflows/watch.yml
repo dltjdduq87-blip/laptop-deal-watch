@@ -1,0 +1,69 @@
+name: Laptop public-price watch
+on:
+  schedule:
+    - cron: '2-57/5 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['watch.py', 'config.json', 'core.py', 'test_watch.py', '.github/workflows/watch.yml']
+permissions:
+  contents: write
+concurrency:
+  group: laptop-public-price-watch
+  cancel-in-progress: false
+jobs:
+  monitor:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Regression checks
+        run: python3 -m unittest -v test_watch
+      - name: Restore durable checkpoint
+        shell: bash
+        run: |
+          if git ls-remote --exit-code --heads origin watch-state > /dev/null; then
+            git fetch --depth=1 origin watch-state
+            git show FETCH_HEAD:state.json > state.json
+          fi
+      - name: Collect public prices and notify verified recipient
+        id: collect
+        continue-on-error: true
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        run: python3 watch.py
+      - name: Save checkpoint and public audit report
+        if: always() && steps.collect.outcome != 'skipped'
+        shell: bash
+        run: |
+          test -f state.json
+          test -f report.json
+          cp state.json "$RUNNER_TEMP/watch-state.json"
+          cp report.json "$RUNNER_TEMP/watch-report.json"
+          rm -f state.json report.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git ls-remote --exit-code --heads origin watch-state > /dev/null; then
+            git fetch --depth=1 origin watch-state
+            git switch -C watch-state FETCH_HEAD
+          else
+            git switch --orphan watch-state
+          fi
+          cp "$RUNNER_TEMP/watch-state.json" state.json
+          cp "$RUNNER_TEMP/watch-report.json" report.json
+          git add state.json report.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Update public price observations and delivery checkpoint'
+            git push origin HEAD:watch-state
+          fi
+      - name: Mark total collection outage as failure
+        if: steps.collect.outcome == 'failure'
+        run: exit 1
