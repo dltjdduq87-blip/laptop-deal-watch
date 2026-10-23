@@ -1,0 +1,85 @@
+name: Telegram connection test
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/telegram-setup.yml']
+permissions: {}
+concurrency:
+  group: telegram-connection-test
+  cancel-in-progress: false
+jobs:
+  connection-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Verify bot and recipient, then send one test
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, os, sys, urllib.request, urllib.error
+          from datetime import datetime, timezone
+          
+          def fail(message):
+              print(message)
+              sys.exit(1)
+          
+          token = os.environ.get('TELEGRAM_BOT_TOKEN', '').strip()
+          if not token:
+              fail('MISSING_TOKEN: TELEGRAM_BOT_TOKEN is not configured.')
+          
+          def api(method, payload=None):
+              request = urllib.request.Request(
+                  'https://api.telegram.org/bot' + token + '/' + method,
+                  data=json.dumps(payload or {}).encode(),
+                  headers={'Content-Type': 'application/json'}, method='POST')
+              try:
+                  with urllib.request.urlopen(request, timeout=25) as response:
+                      result = json.load(response)
+              except urllib.error.HTTPError as error:
+                  fail('Telegram HTTP status ' + str(error.code) + '. Token/permission check failed; secrets are not logged.')
+              except Exception:
+                  fail('Telegram network or JSON response error. Secrets are not logged.')
+              if not result.get('ok'):
+                  fail('Telegram rejected ' + method + '; response omitted for privacy.')
+              return result['result']
+          
+          bot = api('getMe')
+          if bot.get('username', '').lower() != 'kahn777_laptop_alert_bot':
+              fail('WRONG_BOT: the saved token does not match the configured alert bot.')
+          print('Bot identity verified.')
+          if api('getWebhookInfo').get('url'):
+              fail('EXISTING_WEBHOOK: stopped without changing the existing webhook.')
+          updates = api('getUpdates', {'timeout': 0, 'limit': 100, 'allowed_updates': ['message']})
+          candidates = set()
+          for update in updates:
+              message = update.get('message', {})
+              sender, chat = message.get('from', {}), message.get('chat', {})
+              if (chat.get('type') == 'private'
+                      and sender.get('username', '').lower() == 'kahn777'
+                      and sender.get('id') == chat.get('id')
+                      and message.get('text', '').split(' ')[0] == '/start'):
+                  candidates.add(chat['id'])
+          if len(candidates) != 1:
+              fail('NO_VERIFIED_CHAT: send /start again from @kahn777, then run this workflow again. No message sent.')
+          chat_id = candidates.pop()
+          confirmed = api('getChat', {'chat_id': chat_id})
+          if confirmed.get('type') != 'private' or confirmed.get('username', '').lower() != 'kahn777':
+              fail('RECIPIENT_MISMATCH: stopped without sending.')
+          now = datetime.now(timezone.utc).isoformat()
+          text = ('노트북 할인 알림 연결 테스트입니다.\n'
+                  'GitHub Actions에서 텔레그램 발송에 성공했습니다.\n'
+                  '가격 자동 감시와 이메일은 아직 가동 전입니다.\n'
+                  '채팅 ID: ' + str(chat_id) + '\n'
+                  '위 채팅 ID 숫자만 ChatGPT에 알려주세요. 봇 토큰은 보내지 마세요.\n'
+                  '검사 시각(UTC): ' + now)
+          sent = api('sendMessage', {'chat_id': chat_id, 'text': text})
+          if sent.get('chat', {}).get('id') != chat_id:
+              fail('Unexpected sendMessage destination response.')
+          print('TELEGRAM_TEST_ACCEPTED: Telegram API accepted the test message for the verified recipient.')
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('## Telegram connection test\nBot identity and recipient verified. Telegram API accepted the test message. User receipt still needs confirmation.\n\nPrice monitoring and email are not active. No token or chat ID is written to logs.\n')
+          
+          PY
