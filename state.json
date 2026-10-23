@@ -1,0 +1,447 @@
+{
+  "products": {
+    "lg-16z90tp-kd7wk": {
+      "last_notified_candidate_price": 2920200,
+      "last_observation": {
+        "source_id": "lg-16z90tp-kd7wk",
+        "site": "LG",
+        "model": "16Z90TP-KD7WK",
+        "name": "LG 그램 Pro AI",
+        "url": "https://www.lge.co.kr/product/notebook/16z90tp-kd7wk",
+        "price_krw": 3140000,
+        "price_type": "공개 표시가 (회원할인가 표기 포함, 적용 자격 미확인)",
+        "checkout_verified_krw": null,
+        "ram_gb": 32,
+        "weight_kg": 1.199,
+        "in_stock": true,
+        "cpu": "인텔® 코어™ Ultra 7 프로세서 255H",
+        "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tp-kd7wk",
+        "observed_at": "2026-10-23T16:23:50.389571+00:00",
+        "html_sha256": "87f159ddf52a27d51c6f39ea461708aa7afa5fb5c5f25fd5b3b78329a94f112c",
+        "advertised_max_benefit_unverified": 2920200,
+        "payment_methods": [
+          {
+            "method": "KB국민 신용",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "우리 신용",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "KB국민 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "하나 카카오페이 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "하나 트래블로그 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "카카오뱅크 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "토스뱅크 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "네이버페이",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "카카오페이",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          }
+        ],
+        "seller": "제조사 공식몰",
+        "shipping_verified_krw": null,
+        "discounts_verified": false,
+        "matches_public_price_filter": false,
+        "matches_advertised_budget_filter": true,
+        "assessment": {
+          "price_policy": 2.13,
+          "portability_policy": 13.37,
+          "ai_development": null,
+          "gaming": null,
+          "total": null,
+          "status": "성능 벤치마크 미검증, 총점/종합순위 미산출",
+          "weights": {
+            "value": 40,
+            "ai_development": 30,
+            "portability": 20,
+            "gaming": 10
+          }
+        }
+      }
+    },
+    "lg-16z90tl-gs5wk": {
+      "last_observation": {
+        "source_id": "lg-16z90tl-gs5wk",
+        "site": "LG",
+        "model": "16Z90TL-GS5WK",
+        "name": "LG 그램 AI, Copilot+ PC",
+        "url": "https://www.lge.co.kr/product/notebook/16z90tl-gs5wk",
+        "price_krw": 2140000,
+        "price_type": "공개 표시가 (회원할인가 표기 포함, 적용 자격 미확인)",
+        "checkout_verified_krw": null,
+        "ram_gb": 16,
+        "weight_kg": 1.239,
+        "in_stock": true,
+        "cpu": "인텔® 코어™ Ultra 5 프로세서 226V",
+        "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tl-gs5wk",
+        "observed_at": "2026-10-23T16:23:54.473038+00:00",
+        "html_sha256": "fc88d1ee75c6aba34db7b49e26b5637d2a1dad46b47d7566030921fccf95d7cc",
+        "advertised_max_benefit_unverified": 1990200,
+        "payment_methods": [
+          {
+            "method": "KB국민 신용",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "우리 신용",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "KB국민 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "하나 카카오페이 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "하나 트래블로그 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "카카오뱅크 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "토스뱅크 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "네이버페이",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "카카오페이",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          }
+        ],
+        "seller": "제조사 공식몰",
+        "shipping_verified_krw": null,
+        "discounts_verified": false,
+        "matches_public_price_filter": false,
+        "matches_advertised_budget_filter": false,
+        "assessment": {
+          "price_policy": 26.93,
+          "portability_policy": 12.03,
+          "ai_development": null,
+          "gaming": null,
+          "total": null,
+          "status": "성능 벤치마크 미검증, 총점/종합순위 미산출",
+          "weights": {
+            "value": 40,
+            "ai_development": 30,
+            "portability": 20,
+            "gaming": 10
+          }
+        }
+      }
+    },
+    "lg-16z90tp-ka5wk": {
+      "last_observation": {
+        "source_id": "lg-16z90tp-ka5wk",
+        "site": "LG",
+        "model": "16Z90TP-KA5WK",
+        "name": "LG 그램 Pro AI",
+        "url": "https://www.lge.co.kr/product/notebook/16z90tp-ka5wk",
+        "price_krw": 2290000,
+        "price_type": "공개 표시가 (회원할인가 표기 포함, 적용 자격 미확인)",
+        "checkout_verified_krw": null,
+        "ram_gb": 16,
+        "weight_kg": 1.199,
+        "in_stock": true,
+        "cpu": "인텔® 코어™ Ultra 5 프로세서 225H",
+        "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tp-ka5wk",
+        "observed_at": "2026-10-23T16:23:55.872745+00:00",
+        "html_sha256": "5e5c52d782e9dcc51d141e688945fbf7e24f5fedda5dce42be050f8d54241144",
+        "advertised_max_benefit_unverified": 2129700,
+        "payment_methods": [
+          {
+            "method": "KB국민 신용",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "우리 신용",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "KB국민 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "하나 카카오페이 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "하나 트래블로그 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "카카오뱅크 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "토스뱅크 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "네이버페이",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "카카오페이",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          }
+        ],
+        "seller": "제조사 공식몰",
+        "shipping_verified_krw": null,
+        "discounts_verified": false,
+        "matches_public_price_filter": false,
+        "matches_advertised_budget_filter": false,
+        "assessment": {
+          "price_policy": 23.21,
+          "portability_policy": 13.37,
+          "ai_development": null,
+          "gaming": null,
+          "total": null,
+          "status": "성능 벤치마크 미검증, 총점/종합순위 미산출",
+          "weights": {
+            "value": 40,
+            "ai_development": 30,
+            "portability": 20,
+            "gaming": 10
+          }
+        }
+      }
+    },
+    "lg-16z90u-ku7wk": {
+      "last_observation": {
+        "source_id": "lg-16z90u-ku7wk",
+        "site": "LG",
+        "model": "16Z90U-KU7WK",
+        "name": "LG 그램 Pro AI 2026, Copilot+ PC",
+        "url": "https://www.lge.co.kr/product/notebook/16z90u-ku7wk",
+        "price_krw": 3710000,
+        "price_type": "공개 표시가 (회원할인가 표기 포함, 적용 자격 미확인)",
+        "checkout_verified_krw": null,
+        "ram_gb": 32,
+        "weight_kg": 1.199,
+        "in_stock": true,
+        "cpu": "인텔® 코어™ Ultra X7 프로세서 358H",
+        "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90u-ku7wk",
+        "observed_at": "2026-10-23T16:23:57.320323+00:00",
+        "html_sha256": "aad3dbdbb8196f367ec0d6fc8f8d8d009517e5f81af5b6a82bbc533f5393c1e9",
+        "advertised_max_benefit_unverified": 3450300,
+        "payment_methods": [
+          {
+            "method": "KB국민 신용",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "우리 신용",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "KB국민 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "하나 카카오페이 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "하나 트래블로그 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "카카오뱅크 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "토스뱅크 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "네이버페이",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "카카오페이",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          }
+        ],
+        "seller": "제조사 공식몰",
+        "shipping_verified_krw": null,
+        "discounts_verified": false,
+        "matches_public_price_filter": false,
+        "matches_advertised_budget_filter": false,
+        "assessment": {
+          "price_policy": 0,
+          "portability_policy": 13.37,
+          "ai_development": null,
+          "gaming": null,
+          "total": null,
+          "status": "성능 벤치마크 미검증, 총점/종합순위 미산출",
+          "weights": {
+            "value": 40,
+            "ai_development": 30,
+            "portability": 20,
+            "gaming": 10
+          }
+        }
+      }
+    },
+    "lg-16z95u-gs5wk": {
+      "last_observation": {
+        "source_id": "lg-16z95u-gs5wk",
+        "site": "LG",
+        "model": "16Z95U-GS5WK",
+        "name": "LG 그램 Pro AI 2026, Copilot+ PC",
+        "url": "https://www.lge.co.kr/product/notebook/16z95u-gs5wk",
+        "price_krw": 2440000,
+        "price_type": "공개 표시가 (회원할인가 표기 포함, 적용 자격 미확인)",
+        "checkout_verified_krw": null,
+        "ram_gb": 16,
+        "weight_kg": 1.199,
+        "in_stock": true,
+        "cpu": "AMD Ryzen AI 5 435",
+        "spec_source_url": "https://www.lge.co.kr/product/notebook/16z95u-gs5wk",
+        "observed_at": "2026-10-23T16:23:58.782354+00:00",
+        "html_sha256": "85a45d5c13a2c3f9f9f37c6b33c026907a7a292a71fee939901fb9408478cf0b",
+        "advertised_max_benefit_unverified": 2269200,
+        "payment_methods": [
+          {
+            "method": "KB국민 신용",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "우리 신용",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "KB국민 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "하나 카카오페이 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "하나 트래블로그 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "카카오뱅크 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "토스뱅크 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "네이버페이",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "카카오페이",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          }
+        ],
+        "seller": "제조사 공식몰",
+        "shipping_verified_krw": null,
+        "discounts_verified": false,
+        "matches_public_price_filter": false,
+        "matches_advertised_budget_filter": false,
+        "assessment": {
+          "price_policy": 19.49,
+          "portability_policy": 13.37,
+          "ai_development": null,
+          "gaming": null,
+          "total": null,
+          "status": "성능 벤치마크 미검증, 총점/종합순위 미산출",
+          "weights": {
+            "value": 40,
+            "ai_development": 30,
+            "portability": 20,
+            "gaming": 10
+          }
+        }
+      }
+    }
+  },
+  "sent": {
+    "price:lg-16z90tp-kd7wk:2920200:3140000": [
+      "telegram"
+    ],
+    "boot": [
+      "telegram"
+    ],
+    "error:2026-10-24:c7f5410062b787a3": [
+      "telegram"
+    ]
+  },
+  "boot_sent": true
+}
