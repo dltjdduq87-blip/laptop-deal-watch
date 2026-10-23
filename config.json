@@ -1,0 +1,75 @@
+{
+  "scope": "LG 공식몰 목록에서 발견한 최대 8개 노트북과 지정 상품의 공개 가격·사양 감시; 삼성·11번가 지정 상품은 수집 진단 단계",
+  "max_discovered_products": 8,
+  "discovery": [
+    {
+      "site": "LG",
+      "url": "https://www.lge.co.kr/notebook"
+    }
+  ],
+  "sources": [
+    {
+      "id": "lg-16z90tp-kd7wk",
+      "site": "LG",
+      "model": "16Z90TP-KD7WK",
+      "url": "https://www.lge.co.kr/product/notebook/16z90tp-kd7wk"
+    },
+    {
+      "id": "samsung-nt960xjg-kc71s",
+      "site": "삼성",
+      "model": "NT960XJG-KC71S",
+      "url": "https://www.samsung.com/sec/galaxybook/galaxy-book6-pro-nt960xjg-kc71s/NT960XJG-KC71S/"
+    },
+    {
+      "id": "11st-9327563209",
+      "site": "11번가",
+      "product_id": "9327563209",
+      "url": "https://www.11st.co.kr/products/9327563209"
+    }
+  ],
+  "unsupported": [
+    {
+      "site": "네이버",
+      "reason": "기존 쇼핑검색 API 2026-07-31 종료. 대체 접근 연동 전.",
+      "source": "https://developers.naver.com/notice/article/32530"
+    },
+    {
+      "site": "쿠팡",
+      "reason": "허용된 상품 피드/API 미연결, 수집 미구현"
+    },
+    {
+      "site": "G마켓",
+      "reason": "허용된 상품 피드/API 미연결, 수집 미구현"
+    },
+    {
+      "site": "삼성 전체몰/행사",
+      "reason": "지정 URL 진단만 지원. 전체 신상품·사전쿠폰 탐색 미구현"
+    },
+    {
+      "site": "11번가 전체몰/행사",
+      "reason": "지정 URL 진단만 지원. 판매자·무게/AS 및 행사 자동 검증 미구현"
+    }
+  ],
+  "ranking_policy": {
+    "value": 40,
+    "ai_development": 30,
+    "portability": 20,
+    "gaming": 10
+  },
+  "payment_methods": [
+    "KB국민 신용",
+    "우리 신용",
+    "KB국민 체크",
+    "하나 카카오페이 체크",
+    "하나 트래블로그 체크",
+    "카카오뱅크 체크",
+    "토스뱅크 체크",
+    "네이버페이",
+    "카카오페이"
+  ],
+  "budget_policy": {
+    "candidate": "최대혜택 광고가가 예산 내이면 후보 유지",
+    "confirmed": "본인 결제수단 적용 검증 전 확정 실구매가로 표시 금지",
+    "checkout_statement_rewards_separate": true
+  }
+}
