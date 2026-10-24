@@ -250,11 +250,21 @@ def status_summary(report):
  for band in ('150~190만원','190~230만원','230~300만원'):
   lines.append(band+': '+str(sum(p['price_band']==band for p in candidates))+'개 옵션')
  # Raw diagnostics stay in report.json. Do not hide non-catalog failures.
+ indirect=[r for r in report.get('shop_summary',[]) if r['indirect_offers'] and r['site'] not in ('다나와','에누리')]
+ if report.get('offer_details') is not None:
+  lines+=['판매처별 간접 가격 (다나와·에누리 상세 '+str(len(report['offer_details']))+'개 모델): '+(', '.join(r['site']+' '+str(r['indirect_offers'])+'건' for r in indirect) or '대상 쇼핑몰 행 없음'),
+          '간접 가격은 비교사이트 표시값이며 해당 쇼핑몰 로그인·쿠폰 확인이 아닙니다.']
  catalog_sources={r['site']+' 목록' for r in rows}
  extra=[e for e in report['errors'] if e['source'] not in catalog_sources]
  if extra:lines+=['추가 점검 필요: '+', '.join(sorted({e['source'] for e in extra}))]
  lines+=['회원 쿠폰·카드 중복·배송비·국내 AS는 미확인입니다.', '상세 오류·근거: '+REPORT_URL]
  return '\n'.join(lines)
+
+def offer_lines(report,p):
+ rows=[o for o in report.get('offer_observations',[]) if o.get('list_source_id')==p.get('source_id') and o['price_condition'].startswith('일반 판매가') and not o.get('is_ad') and not o.get('is_overseas')]
+ if not rows:return ''
+ rows=sorted(rows,key=lambda o:o['price_krw'])[:4]
+ return '판매처별(간접): '+', '.join(o['seller_name']+' '+format(o['price_krw'],',')+'원' for o in rows)+'\n'
 
 def notify_status(state,report,now):
  signature=health_signature(report)
@@ -283,6 +293,16 @@ def main():
  from catalog import scan, review_candidate, price_band
  coverage,market_products=scan(config,fetch)
  report['coverage']=coverage;report['market_products']=market_products
+ # Indirect seller-level prices from comparison-site detail pages; never a shop login/coupon check.
+ from offers import collect_offers, enrich_specs, shop_summary, apply_spec_cache, update_spec_cache
+ spec_cache=state.setdefault('detail_specs',{})
+ apply_spec_cache(market_products,spec_cache)
+ details,offer_obs,offer_errors=collect_offers(market_products,fetch,limit_per_site=config.get('offer_detail_limit',8),delay=config.get('offer_detail_delay',1.0))
+ enrich_specs(market_products,details);update_spec_cache(spec_cache,details)
+ report['offer_details']=details;report['offer_observations']=offer_obs;report['offer_errors']=offer_errors
+ for agg in ('다나와','에누리'):
+  tried=[e for e in offer_errors if e['source']==agg+' 상세']
+  if tried and not any(d['aggregator']==agg for d in details):report['errors'].append({'source':agg+' 상세','code':tried[0]['code']})
  report['review_candidates']=[{**p,'price_band':price_band(p['price_krw']),'recommendation':'판매자·재고·국내 AS·결제조건 확인 전 검토 후보'} for p in market_products if review_candidate(p)]
  report['ignored_links']=config.get('ignored_links',[])
  catalog_state=state.setdefault('catalog_prices',{})
@@ -291,7 +311,7 @@ def main():
    key='catalog:'+p['source_id']+':'+str(p['price_krw'])
    old=catalog_state.get(p['source_id'])
    if old is None or p['price_krw']<old:
-    message=('다중 쇼핑몰 검토 후보 (구매 확정 추천 아님)\n'+p['name']+'\n공개 비교가 '+format(p['price_krw'],',')+'원 / '+p['price_band']+'\nRAM '+str(p['ram_gb'])+'GB / '+str(p['weight_kg'])+'kg\n판매자·재고·국내 AS·개인 쿠폰·배송비 미확인\n'+p['url'])
+    message=('다중 쇼핑몰 검토 후보 (구매 확정 추천 아님)\n'+p['name']+'\n공개 비교가 '+format(p['price_krw'],',')+'원 / '+p['price_band']+'\nRAM '+str(p['ram_gb'])+'GB / '+str(p['weight_kg'])+'kg\n'+offer_lines(report,p)+'판매자·재고·국내 AS·개인 쿠폰·배송비 미확인\n'+p['url'])
     if deliver(state,report,key,message):catalog_state[p['source_id']]=p['price_krw']
  if not a.dry_run:
   deliver(state,report,'verification:'+DELIVERY_VERSION,'노트북 감시 개선 검증 알림\n공개 쿠폰 문구 변경 감지·가격 하락·재입고·전송 상태 검증을 적용했습니다.\n이 메시지는 연결 테스트이며 할인 확정 알림이 아닙니다.')
@@ -344,6 +364,7 @@ def main():
   row['exact_sku_observations']=len(exact)
   if exact and not row['products']:row['status']='collected';row['products']=len(exact);row['next_action']=None
  report['coverage_complete']=bool(coverage) and all(row['status']=='collected' for row in coverage)
+ report['shop_summary']=shop_summary(offer_obs,coverage)
  for row in coverage:
   if row['status']!='collected':report['errors'].append({'source':row['site']+' 목록','code':row.get('code','NO_PARSEABLE_PRODUCTS')})
  if not a.dry_run:notify_status(state,report,now)
@@ -363,6 +384,8 @@ def main():
     f.write('| 쇼핑몰 | 결과 | 상품 관측 |\n|---|---|---:|\n')
     labels={'collected':'수집됨','blocked':'접근 제한','no_parseable_products':'파싱 미지원','error':'오류'}
     for row in coverage:f.write('| '+row['site']+' | '+labels.get(row['status'],row['status'])+' | '+str(row['products'])+' |\n')
+   f.write('\n| 쇼핑몰 | 직접 수집 | 간접 가격(비교사이트) | 간접 일반가 최저 | 회원혜택 검증 |\n|---|---|---:|---:|---|\n')
+   for row in report.get('shop_summary',[]):f.write('| '+row['site']+' | '+row['direct_status']+' | '+str(row['indirect_offers'])+' | '+(format(row['indirect_lowest_plain_krw'],',') if row['indirect_lowest_plain_krw'] else '-')+' | 미검증 |\n')
    f.write('\n개인별 결제액·쿠폰 발급·선착순 잔량·국내 AS는 별도 검증 전입니다. 접근 제한과 미구현을 정상 수집으로 간주하지 않습니다.\n')
  return 1 if (not report['products'] and not market_products) or report['notification_status']=='failed' else 0
 if __name__=='__main__':raise SystemExit(main())

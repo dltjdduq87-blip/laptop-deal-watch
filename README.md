@@ -30,7 +30,7 @@ python3 -m pip install -r requirements.txt
 python3 -m unittest discover -v
 python3 watch.py --dry-run
 ```
-회귀 테스트 43개: 삼성 SKU 그룹, RAM/SSD/VRAM 혼동 방지, 옵션별 가격, 잘못 전달된 비노트북 제외, 접근차단/파싱실패 상태, 기존 알림 재시도/중복방지 등을 확인합니다.
+회귀 테스트 66개: 삼성 SKU 그룹, RAM/SSD/VRAM 혼동 방지, 옵션별 가격, 잘못 전달된 비노트북 제외, 접근차단/파싱실패 상태, 기존 알림 재시도/중복방지, 판매처별 간접 가격(현금가·카드가·광고·해외 구분), 로컬 혜택 기록의 개인정보 줄 제외 등을 확인합니다.
 
 ## 운영 및 한계
 예약은 `.github/workflows/watch.yml`의 기존 cron을 유지합니다. GitHub Actions의 실행 지연·누락 가능성이 있어 정확한 5분 주기를 보장하지 않습니다. `watch-state` 브랜치에 보고서와 중복방지 상태를 저장합니다. 전송 직후 프로세스 중단이나 저장 실패 시 중복 가능성은 남습니다.
@@ -54,3 +54,15 @@ python3 watch.py --dry-run
 
 ## 노트북용 로그인 준비 · 1단계
 Windows에서 `start_windows.bat`을 실행합니다. 사용법과 검증 한계는 [LOCAL_START_KO.md](LOCAL_START_KO.md)를 확인하세요. 전용 브라우저에서 직접 로그인하며 로그인 상태는 PC에만 저장합니다. 이 단계에는 회원 가격·쿠폰 자동 감시 연동을 포함하지 않습니다. 기존 GitHub Actions 감시 설정은 유지합니다.
+
+## 판매처별 간접 가격 (다나와·에누리 상세) · 2026-10-25 추가
+- `offers.py`: 목록에서 예산(150~300만원) 안이고 RAM·무게가 조건 밖으로 확인되지 않은 모델의 **상세페이지**를 비교사이트별 실행당 최대 8곳(`offer_detail_limit`) 방문합니다. 에누리는 robots의 Crawl-delay에 맞춰 1초 간격입니다.
+- robots 허용 경로만 사용: 다나와 `/info/`(불허 `/info/ajax/`·`/bridge/`는 사용 안 함), 에누리 `/catalog/`(불허 `/api/` 사용 안 함). 그래서 초기 HTML에 표시된 판매처(다나와 약 8곳, 에누리 약 20곳)만 읽으며 전체 판매처 수(`site_offer_count`)와 함께 기록합니다.
+- 판매처명은 정확한 이름만 13개 대상에 연결합니다(`SSG.COM`→SSG 등). 네이버페이 아이콘이 있어도 네이버쇼핑으로 분류하지 않습니다.
+- 현금가·카드할인가는 기본 판매가가 아닌 조건부 가격으로 따로 둡니다. 카드가는 보유 수단과 대조해 표시만 합니다(하나는 체크카드만 보유 → 신용카드 행사면 해당 없음). 비교사이트 적립금은 `reward_separate`로 분리합니다. 광고·해외 판매처는 기준가에서 제외합니다.
+- 상세페이지에서 읽은 RAM·무게는 목록 관측에 보강하고 `state.json`의 `detail_specs`에 캐시합니다. 다음 실행은 이미 조건 밖으로 확인된 모델을 건너뛰고 새 모델을 방문합니다. (실사이트 3회 시뮬레이션에서 에누리 19개 모델 사양 확보, 32GB·1.6kg 이하 독립 모델 5개가 새로 후보에 포함됨)
+- 보고서: `offer_details`, `offer_observations`, `offer_errors`, `shop_summary`(쇼핑몰별 직접 수집 상태 / 간접 가격 건수·일반가 최저 / 회원혜택 검증=항상 false).
+- 간접 관측은 해당 쇼핑몰의 직접 수집·로그인·쿠폰·재고·판매자·국내 AS 검증이 아닙니다. `coverage`의 수집 상태도 올리지 않습니다.
+
+## Windows 설치 (스마트 앱 컨트롤)
+인터넷에서 받은 `start_windows.bat`은 Windows 스마트 앱 컨트롤이 차단할 수 있습니다. 보안 기능을 끄지 말고 `py -3 setup_windows.py`로 설치하세요. 자세한 내용은 [LOCAL_START_KO.md](LOCAL_START_KO.md).

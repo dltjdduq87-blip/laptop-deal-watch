@@ -2,7 +2,11 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
+import re
+from datetime import datetime, timezone
+from urllib.parse import urlsplit
 from pathlib import Path
 import queue
 import threading
@@ -24,6 +28,100 @@ SITES = {
     '에누리': 'https://price.enuri.com/list?category=0404',
 }
 CHANNELS = {'전용 Chromium': None, 'Microsoft Edge': 'msedge', 'Google Chrome': 'chrome'}
+SITE_HOSTS = ('naver.com', 'coupang.com', '11st.co.kr', 'gmarket.co.kr', 'auction.co.kr', 'ssg.com',
+              'e-himart.co.kr', 'samsung.com', 'lge.co.kr', 'asus.com', 'hp.com', 'danawa.com', 'enuri.com')
+BENEFIT = re.compile(r'쿠폰|할인|혜택|적립|캐시백|청구|무이자|카드|페이|최대|선착순|배송|멤버십|회원')
+PERSONAL = re.compile(r'님|주소|연락처|휴대폰|전화|이메일|@|주문번호|배송지|받는\s*분|로그아웃|마이페이지')
+PRICE = re.compile(r'(?<![\d,])(\d{1,3}(?:,\d{3})+|\d{5,8})\s*원')
+# Read only on an explicit click: page URL/title, visible benefit lines and JSON-LD offers.
+# No cookies, storage, form values or password fields are read.
+CAPTURE_JS = '''() => {
+  const ld = [];
+  for (const s of document.querySelectorAll('script[type="application/ld+json"]')) { ld.push(s.textContent.slice(0, 20000)); }
+  return {url: location.href, title: document.title, visible: document.visibilityState,
+          text: (document.body ? document.body.innerText : '').slice(0, 400000), ld: ld.slice(0, 10)};
+}'''
+
+
+def allowed_host(url):
+    host = (urlsplit(url).hostname or '').lower()
+    return urlsplit(url).scheme == 'https' and any(host == h or host.endswith('.' + h) for h in SITE_HOSTS)
+
+
+def ld_offers(blocks):
+    found = []
+    def walk(v):
+        if isinstance(v, list):
+            for x in v: walk(x)
+        elif isinstance(v, dict):
+            if v.get('@type') in ('Offer', 'AggregateOffer') and v.get('priceCurrency') == 'KRW':
+                price = v.get('price', v.get('lowPrice'))
+                try:
+                    found.append({'type': v['@type'], 'price_krw': int(str(price).replace(',', ''))})
+                except (TypeError, ValueError):
+                    pass
+            for k in ('@graph', 'offers', 'hasVariant', 'itemListElement'):
+                if k in v: walk(v[k])
+    for block in blocks:
+        try: walk(json.loads(block))
+        except (ValueError, TypeError): continue
+    return found[:20]
+
+
+def extract_benefits(data, observed_at=None):
+    """Benefit evidence shown to the signed-in viewer. Not a checkout or eligibility verification."""
+    url = str(data.get('url', ''))
+    if not allowed_host(url):
+        raise ValueError('UNSUPPORTED_SITE')
+    lines, seen = [], set()
+    for raw_line in str(data.get('text', '')).splitlines():
+        line = re.sub(r'\s+', ' ', raw_line).strip()
+        if not line or len(line) > 160 or line in seen or PERSONAL.search(line):
+            continue
+        if not BENEFIT.search(line) and not PRICE.search(line):
+            continue
+        seen.add(line); lines.append(line)
+        if len(lines) >= 80:
+            break
+    # Keep first-appearance order: the main product price is usually shown before related items.
+    prices = []
+    for line in lines:
+        for m in PRICE.findall(line):
+            value = int(m.replace(',', ''))
+            if 10000 <= value <= 20000000 and value not in prices:
+                prices.append(value)
+    parts = urlsplit(url)
+    return {
+        'observed_at': observed_at or datetime.now(timezone.utc).isoformat(),
+        'url': parts.scheme + '://' + parts.netloc + parts.path + ('?' + parts.query if parts.query else ''),
+        'title': str(data.get('title', ''))[:200],
+        'benefit_lines': lines,
+        'displayed_prices_krw': prices[:40],
+        'structured_offers': ld_offers(data.get('ld') or []),
+        'evidence_type': 'member_view_snapshot',
+        'login_state_verified': False, 'coupon_issued_verified': False, 'checkout_verified_krw': None,
+        'note': '로그인한 본인 화면에 표시된 문구 기록 · 쿠폰 발급·중복·결제액은 결제창에서 별도 확인 필요',
+    }
+
+
+def observations_path():
+    return data_directory() / 'member_observations.jsonl'
+
+
+def save_observation(record, path=None):
+    path = Path(path or observations_path())
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, 'a', encoding='utf-8') as f:
+        f.write(json.dumps(record, ensure_ascii=False) + '\n')
+    return path
+
+
+def summary_text(record):
+    prices = [o['price_krw'] for o in record['structured_offers']] or record['displayed_prices_krw']
+    head = record['title'][:40] or record['url']
+    label = '상품 가격(구조화) ' if record['structured_offers'] else '화면 첫 가격 '
+    price = (label + ', '.join(format(p, ',') + '원' for p in prices[:3])) if prices else '표시 가격 못 찾음'
+    return head + ' · ' + price + ' · 혜택 문구 ' + str(len(record['benefit_lines'])) + '줄 기록'
 
 
 def data_directory():
@@ -69,6 +167,9 @@ def browser_worker(commands, events, profile, channel):
                     continue
                 if command == 'close':
                     break
+                if command == 'capture':
+                    events.put(capture_active_page(context))
+                    continue
                 if command != 'open' or site not in SITES:
                     continue
                 page = pages.get(site)
@@ -84,12 +185,33 @@ def browser_worker(commands, events, profile, channel):
                 page.bring_to_front()
             context.close()
     except ImportError:
-        events.put(('error', '필수 구성요소가 없습니다. start_windows.bat으로 다시 실행하세요.'))
+        events.put(('error', '필수 구성요소가 없습니다. setup_windows.py(또는 start_windows.bat)로 다시 설치하세요.'))
     except Exception:
         if not closed.is_set():
             events.put(('error', '브라우저를 열지 못했습니다. 같은 프로그램의 다른 창을 닫고 다시 시도하세요. Edge/Chrome 선택 시 해당 브라우저가 설치되어 있어야 합니다.'))
     finally:
         events.put(('closed', '브라우저 종료 · 로그인 유지 여부는 사이트 정책에 따라 달라집니다.'))
+
+
+def capture_active_page(context, save=save_observation):
+    """Record the visible tab only when the user clicks. Never reads cookies or form fields."""
+    try:
+        visible = []
+        for page in list(context.pages):
+            if page.is_closed():
+                continue
+            data = page.evaluate(CAPTURE_JS)
+            if data.get('visible') == 'visible':
+                visible.append(data)
+        if not visible:
+            return ('capture', '기록할 쇼핑몰 화면을 찾지 못했습니다. 상품 페이지를 앞에 띄우고 다시 누르세요.')
+        record = extract_benefits(visible[-1])
+        save(record)
+        return ('capture', '기록 완료 · ' + summary_text(record))
+    except ValueError:
+        return ('capture', '13개 대상 쇼핑몰 화면만 기록합니다.')
+    except Exception:
+        return ('capture', '화면을 읽지 못했습니다. 페이지가 다 열린 뒤 다시 누르세요.')
 
 
 def doctor():
@@ -106,7 +228,7 @@ def main():
     from tkinter import ttk, messagebox
     root = tk.Tk()
     root.title('노트북 감시 · 로그인 준비')
-    root.geometry('800x710')
+    root.geometry('820x760')
     root.minsize(720, 650)
     root.configure(bg='#f4f6fa')
     style = ttk.Style(root)
@@ -120,7 +242,7 @@ def main():
     frame.pack(fill='both', expand=True)
     ttk.Label(frame, text='내 노트북에서 로그인 준비', font=('맑은 고딕', 20, 'bold')).pack(anchor='w')
     ttk.Label(frame, text='1. 브라우저 시작 → 2. 사이트 선택 → 3. 열린 브라우저에서 직접 로그인', wraplength=730).pack(anchor='w', pady=(10, 6))
-    ttk.Label(frame, text='이 버전은 로그인 준비 단계입니다. 가격·쿠폰 자동 감시는 아직 연결되지 않았습니다.', foreground='#9a3412', wraplength=730).pack(anchor='w', pady=(0, 12))
+    ttk.Label(frame, text='로그인은 직접 하세요. 혜택 기록은 누를 때만 동작하며 GitHub·텔레그램 자동 감시와는 아직 연결되지 않았습니다.', foreground='#9a3412', wraplength=730).pack(anchor='w', pady=(0, 12))
     controls = ttk.Frame(frame)
     controls.pack(fill='x')
     selected = tk.StringVar(value='전용 Chromium')
@@ -183,8 +305,19 @@ def main():
     stop_button.pack(side='left', padx=10)
     tree.pack(fill='both', expand=True, pady=14)
     tree.bind('<Double-1>', open_site)
-    open_button = ttk.Button(frame, text='선택한 쇼핑몰 열기', command=open_site, state='disabled')
-    open_button.pack(anchor='w')
+    actions = ttk.Frame(frame)
+    actions.pack(anchor='w', fill='x')
+    open_button = ttk.Button(actions, text='선택한 쇼핑몰 열기', command=open_site, state='disabled')
+    open_button.pack(side='left')
+
+    def capture():
+        if running:
+            commands.put(('capture', None))
+            status.set('현재 화면의 가격·혜택 문구를 읽는 중입니다…')
+
+    capture_button = ttk.Button(actions, text='현재 상품 화면 혜택 기록', command=capture, state='disabled')
+    capture_button.pack(side='left', padx=10)
+    ttk.Label(frame, text='로그인 후 상품 페이지를 띄우고 "혜택 기록"을 누르면 화면의 가격·쿠폰 문구만 이 PC에 저장합니다 (쿠키·입력값은 읽지 않음).', wraplength=730, foreground='#475569').pack(anchor='w', pady=(6, 0))
     ttk.Label(frame, textvariable=status, wraplength=730, foreground='#1d4ed8').pack(anchor='w', pady=(14, 8))
     ttk.Label(frame, text='로그인 완료 후에도 이 프로그램을 다시 열어 로그인 상태가 유지되는지 확인하세요.\n접근 제한이나 보안 확인이 나오면 해당 사이트에서 멈추고 화면을 알려주세요.', wraplength=730).pack(anchor='w')
 
@@ -197,8 +330,11 @@ def main():
                 site, text = value
                 tree.item(site, values=(site, text))
                 status.set(site + ': ' + text)
+            elif kind == 'capture':
+                status.set(value)
             elif kind == 'ready':
                 status.set(value)
+                capture_button.configure(state='normal')
                 open_button.configure(state='normal')
                 stop_button.configure(state='normal')
             elif kind == 'error':
@@ -210,6 +346,7 @@ def main():
                 start_button.configure(state='normal')
                 chooser.configure(state='readonly')
                 open_button.configure(state='disabled')
+                capture_button.configure(state='disabled')
                 stop_button.configure(state='disabled')
                 if closing:
                     root.destroy()
