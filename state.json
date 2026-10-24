@@ -16,8 +16,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 7 프로세서 255H",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tp-kd7wk",
-        "observed_at": "2026-10-24T07:38:25.907533+00:00",
-        "html_sha256": "ef2ab8ed27b625181bf6e2ab1b075f73b9f81cafa206744b2c73c510acdedebc",
+        "observed_at": "2026-10-24T07:39:37.617939+00:00",
+        "html_sha256": "20863f60982695ce20e02b10c4f18c7469cb21d36cba2870d4709f9383079b9f",
         "advertised_max_benefit_unverified": 2920200,
         "payment_methods": [
           {
@@ -111,8 +111,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 5 프로세서 226V",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tl-gs5wk",
-        "observed_at": "2026-10-24T07:38:34.205496+00:00",
-        "html_sha256": "351bdaf8817efe4ac7a4efa9ba5bb77eddc447d03e2b06aca6c2991f6a15e210",
+        "observed_at": "2026-10-24T07:39:39.681990+00:00",
+        "html_sha256": "68829d04fdcb8c8e6c95cd69455e2430bebee9de63aa4315f377273af7d764e0",
         "advertised_max_benefit_unverified": 1990200,
         "payment_methods": [
           {
@@ -206,8 +206,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 5 프로세서 225H",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tp-ka5wk",
-        "observed_at": "2026-10-24T07:38:35.360339+00:00",
-        "html_sha256": "9bc55a5bc0dc9a1bebf66ad2784e7b5a01f9e2a5f33277ee13a4fdf99bf5b8b2",
+        "observed_at": "2026-10-24T07:39:40.177370+00:00",
+        "html_sha256": "6dad3d1d9677ec6a89577a956bba6202a31a663a3405a454a5e75b77fb306986",
         "advertised_max_benefit_unverified": 2129700,
         "payment_methods": [
           {
@@ -387,8 +387,8 @@
         "in_stock": true,
         "cpu": "AMD Ryzen AI 5 435",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z95u-gs5wk",
-        "observed_at": "2026-10-24T07:38:36.439966+00:00",
-        "html_sha256": "8e9752e0af04b8ce381be880ef453f0d3bb20ccf380a05a5ec042a616b1beba5",
+        "observed_at": "2026-10-24T07:39:40.698368+00:00",
+        "html_sha256": "92f45c805dd0bcbdfebbc5e5f39566cdf6c780386124f29282fbfb73f63b130d",
         "advertised_max_benefit_unverified": 2269200,
         "payment_methods": [
           {
@@ -482,8 +482,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 5 프로세서 125U",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/15zb90s-ga5wk",
-        "observed_at": "2026-10-24T07:38:32.600064+00:00",
-        "html_sha256": "e66149dc214359d97dd6465d13f74d54ceb4a18a2f5df5d1afb58559a828d66d",
+        "observed_at": "2026-10-24T07:39:39.169784+00:00",
+        "html_sha256": "11e737b60cc5095c790e0665cdcfbeb1a1f775c3075f8b11a50a534f00ec9b6a",
         "advertised_max_benefit_unverified": 1683300,
         "payment_methods": [
           {
@@ -561,6 +561,130 @@
           }
         }
       }
+    },
+    "samsung-nt960xjg-kc71s": {
+      "last_observation": {
+        "source_id": "samsung-nt960xjg-kc71s",
+        "site": "삼성",
+        "model": "NT960XJG-KC71S",
+        "name": "갤럭시 북6 프로|실버|Windows 11 Home|16GB|512GB|40.6 cm|Intel&reg; Core&trade; Ultra X7 processor 358H|Intel&reg; Arc&trade; Graphics (16인치-2)",
+        "url": "https://www.samsung.com/sec/galaxybook/galaxy-book6-pro-nt960xjg-kc71s/NT960XJG-KC71S/",
+        "price_krw": 3360000,
+        "price_type": "공개 표시가 (회원할인가 표기 포함, 적용 자격 미확인)",
+        "checkout_verified_krw": null,
+        "ram_gb": 16,
+        "weight_kg": null,
+        "in_stock": true,
+        "cpu": null,
+        "spec_source_url": "https://www.samsung.com/sec/galaxybook/galaxy-book6-pro-nt960xjg-kc71s/NT960XJG-KC71S/",
+        "observed_at": "2026-10-24T07:39:38.357177+00:00",
+        "html_sha256": "e3e437309686051b49404b5e13f30a1d9063f3914b6589b00a5db66ae44e3ef6",
+        "advertised_max_benefit_unverified": null,
+        "payment_methods": [
+          {
+            "method": "KB국민 신용",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "우리 신용",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "KB국민 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "하나 카카오페이 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "하나 트래블로그 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "카카오뱅크 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "토스뱅크 체크",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "네이버페이",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          },
+          {
+            "method": "카카오페이",
+            "eligibility": "미확인",
+            "verified_discount_krw": null
+          }
+        ],
+        "seller": "제조사 공식몰",
+        "shipping_verified_krw": null,
+        "discounts_verified": false,
+        "coupon_evidence": {
+          "snippets": [
+            "(발급 쿠폰은 삼성닷컴 내 쿠폰 존의 제휴 브랜드 쿠폰함에서 확인 가능)",
+            "- MO : 네이버페이 홈 > 페이서비스(우측 상단 삼선 버튼) > 쿠폰 > 쿠폰 등록 > 쿠폰번호 입력",
+            "- PC : 네이버페이 홈 > 혜택 쿠폰 > 쿠폰 > 쿠폰 등록 > 쿠폰번호 입력",
+            "10/12~31 기간 한정, 일반 구매 대상 선착순 200명 한정​​​",
+            "9월 발행된 쿠폰의 유효기간은 2026.10.31까지이며 유효기간 이후에는 사용이 불가합니다.",
+            "Microsoft 365 Personal 12개월 구독 50% 할인 쿠폰 증정",
+            "[네이버페이 포인트 쿠폰 대상모델]",
+            "[네이버페이 포인트 쿠폰]",
+            "[삼성스토어 픽업 구매 혜택 : M365 Personal 50% 할인 쿠폰 사용 고객 대상 네이버페이 4만P 쿠폰 증정]",
+            "[삼성스토어 픽업 구매 혜택 : Microsoft 365 Personal 50% 할인 쿠폰]",
+            "[삼성스토어 픽업 구매 혜택 : 정품 액세서리 30% 할인 쿠폰 1매]",
+            "※ 선착순 200명",
+            "① 네이버페이 포인트는 전환 쿠폰으로 지급 예정이며, 해당 쿠폰은 지급일로부터 30일 이내 교환 및 등록 가능합니다.(기간 내 미사용으로 인한 불이익은 당사에서 책임지지 않습니다.)",
+            "③ 네이버페이 포인트 쿠폰은 구매 시 입력한 구매자 명의 휴대폰으로 발송되고 개인정보 입력 오류에 따른 오발송에 대한 책임은 구매자에게 있으니, 구매 전 반드시 개인정보를 확인하여 주시기 바랍니다. (오입력에 따른 재발송 불가)",
+            "④ 지급 완료된 네이버페이 포인트 전환 쿠폰은 2026년 11월 30일 이후에는 재발송 불가하며 이후 재발송 요청 등 추가 CS도 불가합니다.",
+            "⑤ 쿠폰 등록 방법은 아래와 같습니다.",
+            "⑦ 네이버페이 포인트 쿠폰으로 등록된 금액은 적립포인트로 지급되며, 취소 및 현금인출이 불가합니다.",
+            "⑧ 네이버페이 포인트 쿠폰은 네이버쇼핑/네이버웹툰/네이버예약을 비롯한 45만개 이상 가맹점에서 현금처럼 이용하실 수 있습니다.",
+            "⑩ 쿠폰 등록 오류 문의 : 네이버페이 고객센터 1588-3819",
+            "나눠서 결제를 신청할 때 적용한 쿠폰은 최종 주문 시 변경할 수 없습니다.",
+            "네이버페이 포인트 쿠폰은 2026.11.16 이후 순차 지급 예정이며 주문자의 휴대폰 번호로 MMS를 통해 지급됩니다.",
+            "단순 변심으로 인한 갤럭시 북6 시리즈 반품 시, 본 쿠폰을 사용하여 구매한 M365 Personal 제품도 함께 반품되어야 합니다.",
+            "본 액세서리 할인 쿠폰은 갤럭시 캠퍼스 또는 삼성 닷컴에서 제품을 구매한 고객 중 삼성 강남을 포함한 삼성스토어 319점으로 매장 픽업 신청한 고객에게 1인 1매 지급되며, 삼성 강남을 포함한 삼성스토어 319점에 한하여 고객이 지정한 픽업 매장에서 사용이 가능합니다.",
+            "본 쿠폰 발급 기간은 2026.10.01 ~ 2026.10.31까지이며 유효기간은 2026.11.30까지입니다.",
+            "본 쿠폰 지급 대상 매장은 삼성 강남을 포함한 삼성스토어 319점이며, 해당 매장은 당사 사정에 따라 예고 없이 변경 또는 운영 중단될 수 있습니다.",
+            "본 쿠폰 혜택 적용 대상 모델(예시)은 아래와 같습니다.",
+            "본 쿠폰은 고객이 지정한 쿠폰 지급 대상 매장에서 액세서리 구매 (단품 1건 구매 시 쿠폰 1건 사용 가능) 시 사용 가능하며 할인은 사용 쿠폰당 30%입니다. (매장가 기준 할인 조건)",
+            "본 쿠폰은 매장 픽업 완료 후 판매 사원을 통해 상세 내용(대상 모델 등) 확인 후 사용이 가능합니다.",
+            "본 쿠폰은 삼성전자 멤버십 가입 고객에 한 해 사용 가능합니다.",
+            "본 쿠폰은 삼성전자 멤버십 가입 고객에 한해 사용 가능합니다."
+          ],
+          "fingerprint": "7dd12aba7c2f057d2fa7272f3f091b44bf755d8b60fdf01341e224f7c5838b71",
+          "eligibility": "미확인",
+          "stacking_verified": false,
+          "deadline_verified": false
+        },
+        "matches_public_price_filter": false,
+        "matches_advertised_budget_filter": false,
+        "assessment": {
+          "price_policy": 0,
+          "portability_policy": null,
+          "ai_development": null,
+          "gaming": null,
+          "total": null,
+          "status": "성능 벤치마크 미검증, 총점/종합순위 미산출",
+          "weights": {
+            "value": 40,
+            "ai_development": 30,
+            "portability": 20,
+            "gaming": 10
+          }
+        }
+      }
     }
   },
   "sent": {
@@ -578,7 +702,24 @@
     ],
     "verification:2026-10-24-coupon-watch-v1": [
       "telegram"
+    ],
+    "catalog:다나와:5c214091e0b65548:2688980": [
+      "telegram"
+    ],
+    "catalog:다나와:a5c0adbd9cc6c160:2789000": [
+      "telegram"
+    ],
+    "catalog:다나와:0eacf153ccf3f602:2888980": [
+      "telegram"
+    ],
+    "error:2026-10-24:bea466832a2123cb": [
+      "telegram"
     ]
   },
-  "boot_sent": true
+  "boot_sent": true,
+  "catalog_prices": {
+    "다나와:5c214091e0b65548": 2688980,
+    "다나와:a5c0adbd9cc6c160": 2789000,
+    "다나와:0eacf153ccf3f602": 2888980
+  }
 }
