@@ -16,8 +16,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 7 프로세서 255H",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tp-kd7wk",
-        "observed_at": "2026-10-24T01:32:17.851019+00:00",
-        "html_sha256": "611cf9479e1b14e0ed4b31fcbfcc983884383949891b8e6c5ca1191f71ebcf25",
+        "observed_at": "2026-10-24T06:24:56.727546+00:00",
+        "html_sha256": "610e55186b813f7650574d3d827212fd8307b1c02c1b910beb15b59ab27aef44",
         "advertised_max_benefit_unverified": 2920200,
         "payment_methods": [
           {
@@ -102,8 +102,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 5 프로세서 226V",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tl-gs5wk",
-        "observed_at": "2026-10-23T23:04:29.628386+00:00",
-        "html_sha256": "e25eefb18dcf0310acba75728e286f46e88eb4f6498830cac8ce5e984d0b1883",
+        "observed_at": "2026-10-24T06:25:02.439419+00:00",
+        "html_sha256": "4a56e36f120c703cecf0405a028da00f7a9316c5a305470c2a2327c5355b1a29",
         "advertised_max_benefit_unverified": 1990200,
         "payment_methods": [
           {
@@ -188,8 +188,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 5 프로세서 225H",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tp-ka5wk",
-        "observed_at": "2026-10-24T01:32:23.776650+00:00",
-        "html_sha256": "913e1aff01338f3fe5371186add4b92f15c0fc7e603897c14cde75612e460be7",
+        "observed_at": "2026-10-24T06:25:03.329419+00:00",
+        "html_sha256": "07a2f295eaea7c64c604490b66447a05c52bd319e4ccd1969ad92f0baf01e0b2",
         "advertised_max_benefit_unverified": 2129700,
         "payment_methods": [
           {
@@ -274,8 +274,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra X7 프로세서 358H",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90u-ku7wk",
-        "observed_at": "2026-10-24T01:32:24.714726+00:00",
-        "html_sha256": "6e554f2e86c675f770254cc9e98d2557b7f4741d3538447ad20c0f2c62fd4ef8",
+        "observed_at": "2026-10-24T06:25:04.387816+00:00",
+        "html_sha256": "9e4227e4ea14881e51df035f06dd65cdb55cde5f8df14cd5307a5bb9beb39b21",
         "advertised_max_benefit_unverified": 3450300,
         "payment_methods": [
           {
@@ -360,8 +360,8 @@
         "in_stock": true,
         "cpu": "AMD Ryzen AI 5 435",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z95u-gs5wk",
-        "observed_at": "2026-10-24T01:32:25.562472+00:00",
-        "html_sha256": "299554863937acd15d9a542166f282827463f8643ee622202b12f271ce53ca99",
+        "observed_at": "2026-10-24T06:25:05.263978+00:00",
+        "html_sha256": "30581c65da43a6cfdbd7514050971616418ba0470519dc1c287cf56e43008e76",
         "advertised_max_benefit_unverified": 2269200,
         "payment_methods": [
           {
