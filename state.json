@@ -16,8 +16,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 7 프로세서 255H",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tp-kd7wk",
-        "observed_at": "2026-10-24T09:51:15.840490+00:00",
-        "html_sha256": "fc381f89fe84d9bf1fd22dab23a617ccfaef9cbc43a20c82f0a2c24a6883c230",
+        "observed_at": "2026-10-24T10:00:27.728691+00:00",
+        "html_sha256": "0956bf572794c8e95a7f51e73c9d952c0030212b8f7d7b2accb97abba09c1435",
         "advertised_max_benefit_unverified": 2920200,
         "payment_methods": [
           {
@@ -111,8 +111,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 5 프로세서 226V",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tl-gs5wk",
-        "observed_at": "2026-10-24T09:51:19.322087+00:00",
-        "html_sha256": "0d3cba2adaf160067758fbc2b574de193a6791c2642b70a8bcbadd7a8d5d6795",
+        "observed_at": "2026-10-24T10:00:33.888171+00:00",
+        "html_sha256": "c1efeb066c035dde7ccba6c75de23563009eb5779cf43fb5babaf4d86ad665cc",
         "advertised_max_benefit_unverified": 1990200,
         "payment_methods": [
           {
@@ -206,8 +206,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 5 프로세서 225H",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tp-ka5wk",
-        "observed_at": "2026-10-24T09:51:20.356269+00:00",
-        "html_sha256": "502a819fc0e7f23a0b7e1b96a92ae4e549e24cba8ca2b5f22e07a53570585eb2",
+        "observed_at": "2026-10-24T10:00:35.446707+00:00",
+        "html_sha256": "35e0fa6c11c42ccb5b928d86bd29b47b0864d348766fe21c7f6fbed3fbb48f29",
         "advertised_max_benefit_unverified": 2129700,
         "payment_methods": [
           {
@@ -387,8 +387,8 @@
         "in_stock": true,
         "cpu": "AMD Ryzen AI 5 435",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z95u-gs5wk",
-        "observed_at": "2026-10-24T09:51:21.275468+00:00",
-        "html_sha256": "039edd2af1d316ad4ab7bf5984bf47d6cb15129af285376e9b9f8397a9e0cad2",
+        "observed_at": "2026-10-24T10:00:37.124278+00:00",
+        "html_sha256": "8d7ce650f50aafbea972e87b9f601c3c29529eeebc9f17f1c525316fabaa9c63",
         "advertised_max_benefit_unverified": 2269200,
         "payment_methods": [
           {
@@ -482,8 +482,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 5 프로세서 125U",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/15zb90s-ga5wk",
-        "observed_at": "2026-10-24T09:51:18.430012+00:00",
-        "html_sha256": "36d0fb94aaf9cfee1e052236e1f6c81c8dcf18a9cb59b886a7180aeb27ba12f6",
+        "observed_at": "2026-10-24T10:00:32.887016+00:00",
+        "html_sha256": "eda272ed3df08acd3a5c11b4665215acb774c8fa380bb23b8dab7e14597682ba",
         "advertised_max_benefit_unverified": 1683300,
         "payment_methods": [
           {
@@ -577,8 +577,8 @@
         "in_stock": true,
         "cpu": null,
         "spec_source_url": "https://www.samsung.com/sec/galaxybook/galaxy-book6-pro-nt960xjg-kc71s/NT960XJG-KC71S/",
-        "observed_at": "2026-10-24T09:51:16.469705+00:00",
-        "html_sha256": "968d1f3bf44bd5106ef735b69cf40156e748c7e74549cd70f939155f1b195d5b",
+        "observed_at": "2026-10-24T10:00:32.022474+00:00",
+        "html_sha256": "6f54b75d4c151f62d95c681838c4e93875069159cf2b82657dd43e97b950dca1",
         "advertised_max_benefit_unverified": null,
         "payment_methods": [
           {
@@ -723,6 +723,9 @@
     ],
     "error:2026-10-24:c6cfcf68c8c364e6": [
       "telegram"
+    ],
+    "health:763356c033d1d45d:2026-10-24T10:00:15.276053+00:00": [
+      "telegram"
     ]
   },
   "boot_sent": true,
@@ -730,5 +733,6 @@
     "다나와:5c214091e0b65548": 2688980,
     "다나와:a5c0adbd9cc6c160": 2789000,
     "다나와:0eacf153ccf3f602": 2888980
-  }
+  },
+  "health_signature": "763356c033d1d45d"
 }
