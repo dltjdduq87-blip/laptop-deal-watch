@@ -16,8 +16,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 7 프로세서 255H",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tp-kd7wk",
-        "observed_at": "2026-10-24T11:26:09.619529+00:00",
-        "html_sha256": "6dac331a49b1b34fb58980b32d87a039cb939e7659de428ec0b227b865f34bc3",
+        "observed_at": "2026-10-24T14:46:23.638200+00:00",
+        "html_sha256": "4d5d4092f4aa16cf236e54b9d86918e59f2a8c791ec47dc9263387d52205a3f9",
         "advertised_max_benefit_unverified": 2920200,
         "payment_methods": [
           {
@@ -111,8 +111,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 5 프로세서 226V",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tl-gs5wk",
-        "observed_at": "2026-10-24T11:26:12.627284+00:00",
-        "html_sha256": "7703fac671d359921c53fa5988c327a97cc217f449e51770b002cbf275541526",
+        "observed_at": "2026-10-24T14:46:26.312444+00:00",
+        "html_sha256": "f5ad2721874da80ce0366e216d3fbe1f9642592ca8caa039c7cd0f9f9ba21f8d",
         "advertised_max_benefit_unverified": 1990200,
         "payment_methods": [
           {
@@ -206,8 +206,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 5 프로세서 225H",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tp-ka5wk",
-        "observed_at": "2026-10-24T11:26:14.210122+00:00",
-        "html_sha256": "91d99b7bbae6146a2dc4f2cbf7e9eddcbeb0c5b730ed6d958780889744638e0f",
+        "observed_at": "2026-10-24T14:46:27.303361+00:00",
+        "html_sha256": "f7dcda43c2d851d9733af68091cad6cfef5ed531b0fd91308501a77b4cdc29ad",
         "advertised_max_benefit_unverified": 2129700,
         "payment_methods": [
           {
@@ -301,8 +301,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra X7 프로세서 358H",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90u-ku7wk",
-        "observed_at": "2026-10-24T06:25:04.387816+00:00",
-        "html_sha256": "9e4227e4ea14881e51df035f06dd65cdb55cde5f8df14cd5307a5bb9beb39b21",
+        "observed_at": "2026-10-24T14:46:28.625202+00:00",
+        "html_sha256": "257c3f45b1ed471e8b9331adfc9b21899e724fc0127b5dbdeb4d23ff8da744ae",
         "advertised_max_benefit_unverified": 3450300,
         "payment_methods": [
           {
@@ -354,6 +354,15 @@
         "seller": "제조사 공식몰",
         "shipping_verified_krw": null,
         "discounts_verified": false,
+        "coupon_evidence": {
+          "snippets": [
+            "혜택은 적용하는 쿠폰, 카드사에 따라 다르게 계산되어, 실제 적용시 최대 혜택가와 다를 수 있습니다. 상세내용은 구매 혜택 안내에서 확인 가능합니다."
+          ],
+          "fingerprint": "f7afcfcbaac7ed5d8db6753296efab1b0cce5e316edc104da68a94077e095cd4",
+          "eligibility": "미확인",
+          "stacking_verified": false,
+          "deadline_verified": false
+        },
         "matches_public_price_filter": false,
         "matches_advertised_budget_filter": false,
         "assessment": {
@@ -387,8 +396,8 @@
         "in_stock": true,
         "cpu": "AMD Ryzen AI 5 435",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z95u-gs5wk",
-        "observed_at": "2026-10-24T11:26:15.946751+00:00",
-        "html_sha256": "d421c8c7380b6cd13b087bc1dcb613a4a40d1c70c88411bef5f000110b3fd694",
+        "observed_at": "2026-10-24T14:46:29.544629+00:00",
+        "html_sha256": "c9cf85c0cb19722532e9c127fe15e10ddd7df47c21d54ac4334fccff7ec5d97c",
         "advertised_max_benefit_unverified": 2269200,
         "payment_methods": [
           {
@@ -577,8 +586,8 @@
         "in_stock": true,
         "cpu": null,
         "spec_source_url": "https://www.samsung.com/sec/galaxybook/galaxy-book6-pro-nt960xjg-kc71s/NT960XJG-KC71S/",
-        "observed_at": "2026-10-24T11:26:10.755989+00:00",
-        "html_sha256": "da0782fb26d57b621d28ebcec1bc4ea4aac6a85adc0e2d9c2ff572730e2ccc6f",
+        "observed_at": "2026-10-24T14:46:25.145549+00:00",
+        "html_sha256": "e502f4692c2747c34ccf95d03893fed2267bf3f6fea44df6e73ab01cf967b42a",
         "advertised_max_benefit_unverified": null,
         "payment_methods": [
           {
