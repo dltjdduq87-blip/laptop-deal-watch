@@ -196,5 +196,51 @@
   "top_per_band": 3,
   "max_alerts_per_run": 3,
   "daily_summary_hour_kst": 10,
-  "alert_policy": "후보 조건 충족(가격대별 TOP3 진입)·예상가 하락·보유 카드 혜택·감시 상품 쿠폰 문구 변경/재입고·전체 수집 실패(하루 1회)만 알림. 사이트 상태 변화는 일일 요약에만 표시. daily_summary_hour_kst를 null로 하면 일일 요약 끔"
+  "alert_policy": "후보 조건 충족(가격대별 TOP3 진입)·예상가 하락·보유 카드 혜택·감시 상품 쿠폰 문구 변경/재입고·전체 수집 실패(하루 1회)만 알림. 사이트 상태 변화는 일일 요약에만 표시. daily_summary_hour_kst를 null로 하면 일일 요약 끔",
+  "min_ai_game_tier": "A",
+  "ai_game_policy": "S: 외장 GPU VRAM 8GB+ / A: 외장 GPU 입문급 / B: NPU 40TOPS+ AI PC / C: 그 외. min_ai_game_tier 이상만 TOP·알림 대상. 사양 기준이며 FPS·벤치마크 점수 아님",
+  "events": [
+    {
+      "id": "11st-grand11-2026-pre",
+      "name": "11번가 그랜드십일절 사전행사",
+      "start": "2026-10-26",
+      "end": "2026-10-31",
+      "notice_days": 1,
+      "notes": "디지털·대형가전 예약구매·브랜드 한정수량 특가",
+      "source_url": "https://zdnet.co.kr/view/?no=20261021152620",
+      "confirmed": true
+    },
+    {
+      "id": "11st-grand11-2026",
+      "name": "11번가 그랜드십일절",
+      "start": "2026-11-01",
+      "end": "2026-11-11",
+      "notice_days": 7,
+      "notes": "선착순 1만원 장바구니 쿠폰: 11번가플러스 신규/최근 2개월 미구매 무료회원 대상, 11/11 4만원 이상 구매 시(발급 시각 미발표)",
+      "source_url": "https://zdnet.co.kr/view/?no=20261021152620",
+      "confirmed": true,
+      "coupon_drops": []
+    },
+    {
+      "id": "gmarket-bigsmile-2026-11",
+      "name": "G마켓·옥션 빅스마일데이",
+      "start": "2026-11-02",
+      "end": "2026-11-13",
+      "notice_days": 7,
+      "source_url": "https://www.fntimes.com/html/view.php?ud=202610190826286816b5b890e35c_18",
+      "confirmed": true,
+      "coupon_drops": []
+    },
+    {
+      "id": "k-salefesta-2026",
+      "name": "K-세일페스타(구 코리아세일페스타)",
+      "start": "2026-10-29",
+      "end": "2026-11-15",
+      "notice_days": 7,
+      "notes": "참여 소개: G마켓·옥션·쿠팡·롯데ON·11번가·SSG 등 (상품별 참여 여부 별도)",
+      "source_url": "https://www.make2t.kr/2026/10/k-sale-festa-2026-period-discounts.html",
+      "confirmed": false
+    }
+  ],
+  "events_policy": "출처 있는 일정만 사용. coupon_drops에는 쇼핑몰이 발급 시각을 발표한 쿠폰만 {id,name,at(KST ISO),conditions,source_url}로 추가. 3단계: 전날 20시~2시간 전 / 1시간 전 / 발급 시각부터 20분. GitHub 예약 실행 지연으로 창을 놓친 단계는 늦게 보내지 않음"
 }

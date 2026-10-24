@@ -217,7 +217,8 @@ class CandidateAlertTest(unittest.TestCase):
 
     def item(self, name, price, option='SSD 512GB'):
         return {'site': '에누리', 'source_id': name + option, 'model_key': name, 'name': name + ' / ' + option,
-                'price_krw': price, 'ram_gb': 32, 'weight_kg': 1.2, 'url': 'https://price.enuri.com/catalog/1'}
+                'price_krw': price, 'ram_gb': 32, 'weight_kg': 1.2, 'url': 'https://price.enuri.com/catalog/1',
+                'gpu': '외장그래픽 RTX4060 VRAM: 8GB'}
 
     def test_top_per_band_new_or_cheaper_only_and_capped(self):
         market = [self.item('노트북 %d' % i, 2000000 + i * 10000) for i in range(5)]

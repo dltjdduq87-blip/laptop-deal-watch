@@ -252,10 +252,13 @@ def status_summary(report):
          '제조사: '+(', '.join(makers) if makers else '없음')]
  for band in BANDS:
   lines.append(band+': '+str(len({model_key(p) for p in candidates if p['price_band']==band}))+'개 모델')
+ if report.get('top_by_band') is not None:
+  lines+=['AI·게임 최적 기준: 외장 GPU(RTX 등) 우선 → 같은 등급은 예상가 낮은 순']
  for band,band_rows in (report.get('top_by_band') or {}).items():
   if band_rows:
-   lines+=['['+band+'] 예상가 TOP '+str(len(band_rows))+':']
-   lines+=['  '+str(p['band_rank'])+'. '+won(p['effective_price_krw'])+' '+p['model_key'][:40]+' ('+str(p['weight_kg'])+'kg)' for p in band_rows]
+   lines+=['['+band+'] TOP '+str(len(band_rows))+':']
+   lines+=['  '+str(p['band_rank'])+'. ['+p['ai_game_tier']+'] '+won(p['effective_price_krw'])+' '+p['model_key'][:38]+' ('+str(p['weight_kg'])+'kg)' for p in band_rows]
+  else:lines+=['['+band+'] AI·게임 기준 충족 모델 없음']
  sweep_row=next((r for r in rows if r.get('method')),None)
  if sweep_row and not report.get('sweep_complete',True):
   lines+=['에누리 전체 목록 1회차 수집 중 ('+str(sweep_row['products'])+'/'+str(sweep_row.get('models_in_filter') or '?')+') · 완료 후 후보 알림 시작']
@@ -285,16 +288,19 @@ BANDS=('150~190만원','190~230만원','230~300만원')
 def model_key(p):
  return re.sub(r'\s+',' ',str(p.get('model_key') or p.get('model') or p['name'].split(' / ')[0])).strip().upper()
 
-def rank_by_band(candidates,n=3):
- """Best option per model (lowest effective price), then the n cheapest models per price band."""
+def rank_by_band(candidates,n=3,min_tier='A'):
+ """Best option per model (lowest effective price), then per band: AI/game tier first, then price."""
+ import ai_game
  best={}
  for p in candidates:
+  if not ai_game.allowed(p,min_tier):continue
+  p={**p,'ai_game_tier':ai_game.tier(p),'ai_game_desc':ai_game.describe(p)}
   k=model_key(p);cur=best.get(k)
   if cur is None or p['effective_price_krw']<cur['effective_price_krw']:
    best[k]={**p,'model_key':k,'options_seen':(cur or {}).get('options_seen',0)+1}
   else:cur['options_seen']+=1
  ranked={b:[] for b in BANDS}
- for p in sorted(best.values(),key=lambda p:p['effective_price_krw']):
+ for p in sorted(best.values(),key=lambda p:(ai_game.TIER_ORDER[p['ai_game_tier']],p['effective_price_krw'])):
   if p['price_band'] in ranked and len(ranked[p['price_band']])<n:
    ranked[p['price_band']].append({**p,'band_rank':len(ranked[p['price_band']])+1})
  return ranked
@@ -309,6 +315,7 @@ def candidate_message(report,p):
          +'공개 비교가 '+won(p['price_krw'])+' ('+p['site']+')\n'
          +estimate_line(p)
          +'RAM '+str(p['ram_gb'])+'GB / '+str(p['weight_kg'])+'kg\n'
+         +('AI·게임 등급: '+p['ai_game_desc']+' (사양 기준, FPS·벤치마크 아님)\n' if p.get('ai_game_desc') else '')
          +spec_line(p)
          +offer_lines(report,p)
          +'예상가는 공개 정보 계산값입니다. T멤버십(VIP)·쇼핑몰 쿠폰·카드 실적/한도·재고·국내 AS는 구매 전 앱에서 확인하세요.\n'+p['url'])
@@ -371,7 +378,8 @@ def main():
  from offers import attach_estimates, effective_price
  attach_estimates(market_products,offer_obs)
  report['review_candidates']=[{**p,'effective_price_krw':effective_price(p),'price_band':price_band(effective_price(p)),'recommendation':'판매자·재고·국내 AS·결제조건 확인 전 검토 후보'} for p in market_products if review_candidate({**p,'price_krw':effective_price(p)})]
- report['top_by_band']=rank_by_band(report['review_candidates'],config.get('top_per_band',3))
+ report['ai_game_min_tier']=config.get('min_ai_game_tier','A')
+ report['top_by_band']=rank_by_band(report['review_candidates'],config.get('top_per_band',3),report['ai_game_min_tier'])
  report['top_by_band_flat']=[p for band in report['top_by_band'].values() for p in band]
  report['ignored_links']=config.get('ignored_links',[])
  catalog_state=state.setdefault('catalog_prices',{})
@@ -386,6 +394,11 @@ def main():
    reason='조건 충족 새 후보' if before is None else '예상가 하락 (이전 알림 '+won(before)+')'
    if (p.get('buyer_estimate') or {}).get('basis')=='보유 결제수단 조건가':reason+=' · 보유 카드 혜택 적용'
    if deliver(state,report,key,'['+reason+']\n'+candidate_message(report,p)):top_state[p['model_key']]=p['effective_price_krw']
+ if not a.dry_run and config.get('events'):
+  from events import due_alerts
+  top_lines=[('['+p['ai_game_tier']+'] '+won(p['effective_price_krw'])+' '+p['model_key'][:38]) for p in report['top_by_band_flat'][:5]]
+  for key,message in due_alerts(config['events'],now,top_lines):
+   if any(c not in state['sent'].get(key,[]) for c in enabled_channels()):deliver(state,report,key,message)
  if not a.dry_run:
   deliver(state,report,'verification:'+DELIVERY_VERSION,'노트북 감시 개선 검증 알림\n공개 쿠폰 문구 변경 감지·가격 하락·재입고·전송 상태 검증을 적용했습니다.\n이 메시지는 연결 테스트이며 할인 확정 알림이 아닙니다.')
  api_sites={x['site'] for x in config.get('catalogs',[]) if x.get('adapter')=='elevenst_api'}
