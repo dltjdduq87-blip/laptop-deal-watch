@@ -114,7 +114,7 @@
     },
     {
       "site": "에누리",
-      "url": "https://m.enuri.com/m/list.jsp?cate=0404"
+      "url": "https://price.enuri.com/list?activeOption=isLowestPriceIn30Days&category=0404"
     }
   ],
   "buyer_profile": {
