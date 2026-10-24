@@ -251,6 +251,55 @@ def update_spec_cache(cache, details, keep=300):
     return cache
 
 
+APPLICABLE_PREFIXES = ('보유 신용카드사', '보유 간편결제')
+
+
+def buyer_estimate(offers):
+    """Lowest price this buyer could plausibly pay, from public data only.
+
+    Uses the lowest plain listing (+ known shipping) and card/easy-pay prices whose issuer matches
+    the buyer's wallet (KB국민/우리 credit, Naver/Kakao Pay). Never verified: issuer match does not
+    prove the specific card, monthly spend, limit or period. Cash-only prices are excluded.
+    """
+    base = baseline_offer(offers)
+    best = None
+    if base:
+        best = dict(estimated_krw=base['price_krw'] + (base['shipping_krw'] or 0), basis='공개 최저 판매가',
+                    seller=base['seller_name'], condition=None)
+    for o in offers:
+        if o.get('is_ad') or o.get('is_overseas'):
+            continue
+        for c in o.get('conditional_prices', []):
+            if not str(c.get('buyer_applicability', '')).startswith(APPLICABLE_PREFIXES):
+                continue
+            total = c['price_krw'] + (o['shipping_krw'] or 0)
+            if best is None or total < best['estimated_krw']:
+                best = dict(estimated_krw=total, basis='보유 결제수단 조건가', seller=o['seller_name'],
+                            condition=c['label'] + ' · ' + c['buyer_applicability'])
+    if best is None:
+        return None
+    best.update(base_krw=base['price_krw'] if base else None, base_seller=base['seller_name'] if base else None,
+                shipping_known=bool(base and base['shipping_krw'] is not None), verified=False,
+                note='공개 정보 기반 예상가 · 쿠폰·멤버십·카드 실적/한도·재고 미확인')
+    return best
+
+
+def attach_estimates(market_products, offers):
+    by_list = {}
+    for o in offers:
+        by_list.setdefault(o.get('list_source_id'), []).append(o)
+    for p in market_products:
+        est = buyer_estimate(by_list.get(p.get('source_id'), []))
+        if est:
+            p['buyer_estimate'] = est
+
+
+def effective_price(p):
+    """Price used for budget/alerts: the lower of the list price and the public-data estimate."""
+    est = (p.get('buyer_estimate') or {}).get('estimated_krw')
+    return min(p['price_krw'], est) if isinstance(est, int) and est > 0 else p['price_krw']
+
+
 def select_details(market_products, budget=(1500000, 3000000), limit_per_site=8):
     picked = []
     for site in ('다나와', '에누리'):

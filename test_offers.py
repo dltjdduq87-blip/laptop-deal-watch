@@ -164,5 +164,64 @@ class SpecCacheTest(unittest.TestCase):
         self.assertEqual(sorted(cache), ['2', '3', '4'])
 
 
+class BuyerEstimateTest(unittest.TestCase):
+    def offer(self, seller, price, cards=(), shipping=0, condition='일반 판매가', **kw):
+        return O.offer_record('에누리', 'u', seller=seller, price=price, catalog_name='c', shipping_krw=shipping,
+                              price_condition=condition, conditional_prices=[
+                                  {'label': l, 'price_krw': p, 'buyer_applicability': O.card_applicability(l)} for l, p in cards], **kw)
+
+    def test_matching_credit_card_price_lowers_estimate(self):
+        est = O.buyer_estimate([self.offer('옥션', 3000000), self.offer('G마켓', 3010000, cards=[('KB국민카드', 2900000)])])
+        self.assertEqual(est['estimated_krw'], 2900000)
+        self.assertEqual(est['basis'], '보유 결제수단 조건가')
+        self.assertIn('KB국민', est['condition'])
+        self.assertEqual(est['base_krw'], 3000000)
+        self.assertFalse(est['verified'])
+
+    def test_hana_check_card_and_cash_are_not_used(self):
+        est = O.buyer_estimate([self.offer('옥션', 3000000), self.offer('G마켓', 3000000, cards=[('하나카드', 2800000)]),
+                                self.offer('착한컴', 2500000, condition='현금가 (결제수단 조건부)')])
+        self.assertEqual(est['estimated_krw'], 3000000)
+        self.assertEqual(est['basis'], '공개 최저 판매가')
+
+    def test_shipping_added_and_ads_ignored(self):
+        est = O.buyer_estimate([self.offer('A', 2000000, shipping=5000), self.offer('B', 1000000, cards=[('우리카드', 900000)], is_ad=True)])
+        self.assertEqual(est['estimated_krw'], 2005000)
+
+    def test_effective_price(self):
+        self.assertEqual(O.effective_price({'price_krw': 3100000, 'buyer_estimate': {'estimated_krw': 2950000}}), 2950000)
+        self.assertEqual(O.effective_price({'price_krw': 3100000}), 3100000)
+
+
+class CandidateAlertTest(unittest.TestCase):
+    def test_new_candidates_beyond_cheapest_three_are_alerted_once(self):
+        import os, sys, tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        import watch
+        market = [{'site': '다나와', 'source_id': 's%d' % i, 'name': '노트북 %d' % i, 'price_krw': 2000000 + i * 10000,
+                   'ram_gb': 32, 'weight_kg': 1.2, 'url': 'https://prod.danawa.com/info/?pcode=%d' % i} for i in range(5)]
+        state = {'products': {}, 'sent': {}, 'catalog_prices': {'s0': 2000000, 's1': 2010000, 's2': 2020000}}
+        config = {'scope': 'x', 'sources': [], 'unsupported': [], 'catalogs': [], 'catalog_review_notifications': True}
+        sent = []
+        previous = os.getcwd()
+        with tempfile.TemporaryDirectory() as d:
+            try:
+                os.chdir(d)
+                Path('config.json').write_text(json.dumps(config)); Path('state.json').write_text(json.dumps(state))
+                with patch.object(sys, 'argv', ['watch.py']), patch.dict(os.environ, {'GITHUB_STEP_SUMMARY': ''}), \
+                        patch('catalog.scan', return_value=([], market)), patch('offers.collect_offers', return_value=([], [], [])), \
+                        patch('watch.telegram', side_effect=lambda t: sent.append(t) or True), patch('watch.email', return_value=False):
+                    watch.main()
+                saved = json.loads(Path('state.json').read_text())
+            finally:
+                os.chdir(previous)
+        alerts = [t for t in sent if t.startswith('노트북 후보 알림')]
+        self.assertEqual(len(alerts), 2)
+        self.assertTrue(any('노트북 3' in t for t in alerts) and any('노트북 4' in t for t in alerts))
+        self.assertTrue(all('T멤버십' in t for t in alerts))
+        self.assertEqual(saved['catalog_prices']['s4'], 2040000)
+
+
 if __name__ == '__main__':
     unittest.main()

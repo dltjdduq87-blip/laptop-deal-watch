@@ -249,6 +249,10 @@ def status_summary(report):
  lines+=['조건별 검토 후보 '+str(len(candidates))+'개 옵션 (동일 모델 포함)']
  for band in ('150~190만원','190~230만원','230~300만원'):
   lines.append(band+': '+str(sum(p['price_band']==band for p in candidates))+'개 옵션')
+ top=sorted(candidates,key=lambda p:p.get('effective_price_krw',p['price_krw']))[:3]
+ if top:
+  lines+=['예상가 낮은 후보 (공개 정보 계산, 미확인):']
+  lines+=['• '+won(p.get('effective_price_krw',p['price_krw']))+' '+p['name'][:45] for p in top]
  # Raw diagnostics stay in report.json. Do not hide non-catalog failures.
  indirect=[r for r in report.get('shop_summary',[]) if r['indirect_offers'] and r['site'] not in ('다나와','에누리')]
  if report.get('offer_details') is not None:
@@ -259,6 +263,24 @@ def status_summary(report):
  if extra:lines+=['추가 점검 필요: '+', '.join(sorted({e['source'] for e in extra}))]
  lines+=['회원 쿠폰·카드 중복·배송비·국내 AS는 미확인입니다.', '상세 오류·근거: '+REPORT_URL]
  return '\n'.join(lines)
+
+def won(v):return format(v,',')+'원'
+
+def estimate_line(p):
+ e=p.get('buyer_estimate')
+ if not e:return ''
+ if e['basis']=='보유 결제수단 조건가':
+  return '내 결제수단 예상가 '+won(e['estimated_krw'])+' ('+e['seller']+')\n  조건: '+e['condition']+'\n'
+ line='보유 카드 할인 표시 없음 → 최저 판매처 '+e['seller']+' '+won(e['estimated_krw'])
+ return line+(' (배송비 미확인)' if not e['shipping_known'] else ' (배송비 포함)')+'\n'
+
+def candidate_message(report,p):
+ return ('노트북 후보 알림 (구매 확정 추천 아님)\n'+p['name']+'\n'
+         +'공개 비교가 '+won(p['price_krw'])+' / '+p['price_band']+'\n'
+         +estimate_line(p)
+         +'RAM '+str(p['ram_gb'])+'GB / '+str(p['weight_kg'])+'kg\n'
+         +offer_lines(report,p)
+         +'예상가는 공개 정보 계산값입니다. T멤버십(VIP)·쇼핑몰 쿠폰·카드 실적/한도·재고·국내 AS는 구매 전 앱에서 확인하세요.\n'+p['url'])
 
 def offer_lines(report,p):
  rows=[o for o in report.get('offer_observations',[]) if o.get('list_source_id')==p.get('source_id') and o['price_condition'].startswith('일반 판매가') and not o.get('is_ad') and not o.get('is_overseas')]
@@ -303,16 +325,17 @@ def main():
  for agg in ('다나와','에누리'):
   tried=[e for e in offer_errors if e['source']==agg+' 상세']
   if tried and not any(d['aggregator']==agg for d in details):report['errors'].append({'source':agg+' 상세','code':tried[0]['code']})
- report['review_candidates']=[{**p,'price_band':price_band(p['price_krw']),'recommendation':'판매자·재고·국내 AS·결제조건 확인 전 검토 후보'} for p in market_products if review_candidate(p)]
+ from offers import attach_estimates, effective_price
+ attach_estimates(market_products,offer_obs)
+ report['review_candidates']=[{**p,'effective_price_krw':effective_price(p),'price_band':price_band(effective_price(p)),'recommendation':'판매자·재고·국내 AS·결제조건 확인 전 검토 후보'} for p in market_products if review_candidate({**p,'price_krw':effective_price(p)})]
  report['ignored_links']=config.get('ignored_links',[])
  catalog_state=state.setdefault('catalog_prices',{})
  if not a.dry_run and config.get('catalog_review_notifications'):
-  for p in sorted(report['review_candidates'],key=lambda p:p['price_krw'])[:3]:
-   key='catalog:'+p['source_id']+':'+str(p['price_krw'])
-   old=catalog_state.get(p['source_id'])
-   if old is None or p['price_krw']<old:
-    message=('다중 쇼핑몰 검토 후보 (구매 확정 추천 아님)\n'+p['name']+'\n공개 비교가 '+format(p['price_krw'],',')+'원 / '+p['price_band']+'\nRAM '+str(p['ram_gb'])+'GB / '+str(p['weight_kg'])+'kg\n'+offer_lines(report,p)+'판매자·재고·국내 AS·개인 쿠폰·배송비 미확인\n'+p['url'])
-    if deliver(state,report,key,message):catalog_state[p['source_id']]=p['price_krw']
+  # Only candidates that are new or cheaper than last notified; at most three per run.
+  due=[p for p in report['review_candidates'] if catalog_state.get(p['source_id']) is None or p['effective_price_krw']<catalog_state[p['source_id']]]
+  for p in sorted(due,key=lambda p:p['effective_price_krw'])[:3]:
+   key='catalog:'+p['source_id']+':'+str(p['effective_price_krw'])
+   if deliver(state,report,key,candidate_message(report,p)):catalog_state[p['source_id']]=p['effective_price_krw']
  if not a.dry_run:
   deliver(state,report,'verification:'+DELIVERY_VERSION,'노트북 감시 개선 검증 알림\n공개 쿠폰 문구 변경 감지·가격 하락·재입고·전송 상태 검증을 적용했습니다.\n이 메시지는 연결 테스트이며 할인 확정 알림이 아닙니다.')
  api_sites={x['site'] for x in config.get('catalogs',[]) if x.get('adapter')}
