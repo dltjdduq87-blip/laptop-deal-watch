@@ -1,5 +1,5 @@
 {
-  "observed_at": "2026-10-23T23:04:23.743969+00:00",
+  "observed_at": "2026-10-24T01:32:15.859079+00:00",
   "status": "partial",
   "scope": "LG 공식몰 목록에서 발견한 최대 8개 노트북과 지정 상품의 공개 가격·사양 감시; 삼성·11번가 지정 상품은 수집 진단 단계",
   "products": [
@@ -17,8 +17,8 @@
       "in_stock": true,
       "cpu": "인텔® 코어™ Ultra 7 프로세서 255H",
       "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tp-kd7wk",
-      "observed_at": "2026-10-23T23:04:26.363878+00:00",
-      "html_sha256": "d2716331f3271f5828a4d121199967210e6a835d8729331c3a962b75c867084e",
+      "observed_at": "2026-10-24T01:32:17.851019+00:00",
+      "html_sha256": "611cf9479e1b14e0ed4b31fcbfcc983884383949891b8e6c5ca1191f71ebcf25",
       "advertised_max_benefit_unverified": 2920200,
       "payment_methods": [
         {
@@ -88,22 +88,22 @@
       }
     },
     {
-      "source_id": "lg-16z90tl-gs5wk",
+      "source_id": "lg-15zb90s-ga5wk",
       "site": "LG",
-      "model": "16Z90TL-GS5WK",
-      "name": "LG 그램 AI, Copilot+ PC",
-      "url": "https://www.lge.co.kr/product/notebook/16z90tl-gs5wk",
-      "price_krw": 2140000,
+      "model": "15ZB90S-GA5WK",
+      "name": "LG 그램",
+      "url": "https://www.lge.co.kr/product/notebook/15zb90s-ga5wk",
+      "price_krw": 1810000,
       "price_type": "공개 표시가 (회원할인가 표기 포함, 적용 자격 미확인)",
       "checkout_verified_krw": null,
       "ram_gb": 16,
-      "weight_kg": 1.239,
+      "weight_kg": 1.29,
       "in_stock": true,
-      "cpu": "인텔® 코어™ Ultra 5 프로세서 226V",
-      "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tl-gs5wk",
-      "observed_at": "2026-10-23T23:04:29.628386+00:00",
-      "html_sha256": "e25eefb18dcf0310acba75728e286f46e88eb4f6498830cac8ce5e984d0b1883",
-      "advertised_max_benefit_unverified": 1990200,
+      "cpu": "인텔® 코어™ Ultra 5 프로세서 125U",
+      "spec_source_url": "https://www.lge.co.kr/product/notebook/15zb90s-ga5wk",
+      "observed_at": "2026-10-24T01:32:22.562754+00:00",
+      "html_sha256": "ea06a2fa8ffdc12165be31465125613f8d5de6a42e251e489954a72a149d9a70",
+      "advertised_max_benefit_unverified": 1683300,
       "payment_methods": [
         {
           "method": "KB국민 신용",
@@ -157,8 +157,8 @@
       "matches_public_price_filter": false,
       "matches_advertised_budget_filter": false,
       "assessment": {
-        "price_policy": 26.93,
-        "portability_policy": 12.03,
+        "price_policy": 35.11,
+        "portability_policy": 10.33,
         "ai_development": null,
         "gaming": null,
         "total": null,
@@ -185,8 +185,8 @@
       "in_stock": true,
       "cpu": "인텔® 코어™ Ultra 5 프로세서 225H",
       "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tp-ka5wk",
-      "observed_at": "2026-10-23T23:04:30.620499+00:00",
-      "html_sha256": "632a9d11b5c9648c55eede912cf21dc6d1c1f2ee1f075b5c0ebf3510a420529d",
+      "observed_at": "2026-10-24T01:32:23.776650+00:00",
+      "html_sha256": "913e1aff01338f3fe5371186add4b92f15c0fc7e603897c14cde75612e460be7",
       "advertised_max_benefit_unverified": 2129700,
       "payment_methods": [
         {
@@ -269,8 +269,8 @@
       "in_stock": true,
       "cpu": "인텔® 코어™ Ultra X7 프로세서 358H",
       "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90u-ku7wk",
-      "observed_at": "2026-10-23T23:04:31.488250+00:00",
-      "html_sha256": "8b62332e506795706c18dffa8c5ff053b7279cd2890916d2d51dacda36ddc75a",
+      "observed_at": "2026-10-24T01:32:24.714726+00:00",
+      "html_sha256": "6e554f2e86c675f770254cc9e98d2557b7f4741d3538447ad20c0f2c62fd4ef8",
       "advertised_max_benefit_unverified": 3450300,
       "payment_methods": [
         {
@@ -353,8 +353,8 @@
       "in_stock": true,
       "cpu": "AMD Ryzen AI 5 435",
       "spec_source_url": "https://www.lge.co.kr/product/notebook/16z95u-gs5wk",
-      "observed_at": "2026-10-23T23:04:32.475976+00:00",
-      "html_sha256": "b94e231fb341df02daa179029d901d009ca3485c4f512e04fcf35d7633a6061f",
+      "observed_at": "2026-10-24T01:32:25.562472+00:00",
+      "html_sha256": "299554863937acd15d9a542166f282827463f8643ee622202b12f271ce53ca99",
       "advertised_max_benefit_unverified": 2269200,
       "payment_methods": [
         {
