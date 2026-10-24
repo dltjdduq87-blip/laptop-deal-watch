@@ -46,6 +46,11 @@ class CatalogTests(unittest.TestCase):
   with self.assertRaises(ValueError):validate_url('https://127.0.0.1/')
 
 class MoreCatalogTests(unittest.TestCase):
+ def test_enuri_canonical_product_host_is_allowed(self):
+  p={**VARIANT,'name':'HP Nexos 14','offers':{'@type':'AggregateOffer','priceCurrency':'KRW','lowPrice':1800000},'url':'https://price.enuri.com/catalog/1'}
+  found=parse_catalog(page(p),'에누리','https://m.enuri.com/m/list.jsp?cate=0404')
+  self.assertEqual(len(found),1);self.assertEqual(found[0]['price_krw'],1800000)
+
  def test_marketplace_uses_sale_price_not_advertised_coupon(self):
   value={'itemNo':'42','commonItemInfo':{'item':{'text':'갤럭시북 노트북 RAM 32GB','link':'https://item.gmarket.co.kr/Item?goodscode=42&tracking=secret'},'price':{'binPrice':'2,000,000','couponPrice':'1,500,000'}}}
   raw='<script id="__NEXT_DATA__" type="application/json">'+json.dumps(value)+'</script>'

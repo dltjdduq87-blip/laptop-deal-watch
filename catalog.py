@@ -115,7 +115,8 @@ def parse_catalog(raw,site,url):
                     model=name,url=urljoin(url,anchor['href']),price=price,spec_text=spec_text))
     for p in ld_products(soup):
         name=p.get('name','')
-        if not notebook_name(name):continue
+        enuri_notebook_list=site=='에누리' and parse_qs(urlsplit(url).query).get('cate')==['0404']
+        if not notebook_name(name) and not (enuri_notebook_list and not ACCESSORY.search(name)):continue
         model=str(p.get('model') or p.get('sku') or p.get('productID') or '')
         if not model:continue
         offers=p.get('offers',[]);offers=[offers] if isinstance(offers,dict) else offers
@@ -127,7 +128,9 @@ def parse_catalog(raw,site,url):
             if price<=0 or str(price)!=value:continue
         except (KeyError,ValueError,TypeError):continue
         target=urljoin(url,offer.get('url') or p.get('url') or '')
-        if urlsplit(target).scheme!='https' or urlsplit(target).hostname!=urlsplit(url).hostname:continue
+        enuri_hosts={'www.enuri.com','enuri.com','m.enuri.com','price.enuri.com'}
+        same_shop=urlsplit(target).hostname==urlsplit(url).hostname or (site=='에누리' and urlsplit(target).hostname in enuri_hosts)
+        if urlsplit(target).scheme!='https' or not same_shop:continue
         # A shared catalog URL cannot identify several distinct SKU offers.
         if not offer.get('url') and not p.get('url'):continue
         props=p.get('additionalProperty',[]);props=[props] if isinstance(props,dict) else props

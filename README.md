@@ -30,7 +30,7 @@ python3 -m pip install -r requirements.txt
 python3 -m unittest discover -v
 python3 watch.py --dry-run
 ```
-회귀 테스트 34개: 삼성 SKU 그룹, RAM/SSD/VRAM 혼동 방지, 옵션별 가격, 잘못 전달된 비노트북 제외, 접근차단/파싱실패 상태, 기존 알림 재시도/중복방지 등을 확인합니다.
+회귀 테스트 35개: 삼성 SKU 그룹, RAM/SSD/VRAM 혼동 방지, 옵션별 가격, 잘못 전달된 비노트북 제외, 접근차단/파싱실패 상태, 기존 알림 재시도/중복방지 등을 확인합니다.
 
 ## 운영 및 한계
 예약은 `.github/workflows/watch.yml`의 기존 cron을 유지합니다. GitHub Actions의 실행 지연·누락 가능성이 있어 정확한 5분 주기를 보장하지 않습니다. `watch-state` 브랜치에 보고서와 중복방지 상태를 저장합니다. 전송 직후 프로세스 중단이나 저장 실패 시 중복 가능성은 남습니다.
