@@ -1,5 +1,5 @@
 {
-  "scope": "LG 공식몰 목록에서 발견한 최대 8개 노트북과 지정 상품의 공개 가격·사양 감시; 삼성·11번가 지정 상품은 수집 진단 단계",
+  "scope": "주요 13개 쇼핑몰·가격비교 사이트의 공개 목록 수집 및 상태 진단; 접근 제한·파싱 미지원은 별도 기록. 전체 시장/개인 결제창 검증 아님",
   "max_discovered_products": 8,
   "discovery": [
     {
@@ -29,25 +29,12 @@
   ],
   "unsupported": [
     {
-      "site": "네이버",
-      "reason": "기존 쇼핑검색 API 2026-07-31 종료. 대체 접근 연동 전.",
-      "source": "https://developers.naver.com/notice/article/32530"
+      "site": "개인별 결제창·쿠폰 발급",
+      "reason": "로그인 자격·중복·배송비 검증 전 확정 실구매가 미산출"
     },
     {
-      "site": "쿠팡",
-      "reason": "허용된 상품 피드/API 미연결, 수집 미구현"
-    },
-    {
-      "site": "G마켓",
-      "reason": "허용된 상품 피드/API 미연결, 수집 미구현"
-    },
-    {
-      "site": "삼성 전체몰/행사",
-      "reason": "지정 URL 진단만 지원. 전체 신상품·사전쿠폰 탐색 미구현"
-    },
-    {
-      "site": "11번가 전체몰/행사",
-      "reason": "지정 URL 진단만 지원. 판매자·무게/AS 및 행사 자동 검증 미구현"
+      "site": "접근 제한 판매처",
+      "reason": "각 쇼핑몰 coverage 상태와 오류를 확인; 등록을 수집 성공으로 간주하지 않음"
     }
   ],
   "ranking_policy": {
@@ -71,5 +58,110 @@
     "candidate": "최대혜택 광고가가 예산 내이면 후보 유지",
     "confirmed": "본인 결제수단 적용 검증 전 확정 실구매가로 표시 금지",
     "checkout_statement_rewards_separate": true
-  }
+  },
+  "catalogs": [
+    {
+      "site": "네이버쇼핑",
+      "url": "https://shopping.naver.com/",
+      "access_requirement": "쇼핑검색 API 종료 및 접근 정책 확인; 허용된 판매자 피드 필요"
+    },
+    {
+      "site": "쿠팡",
+      "url": "https://www.coupang.com/np/search?q=%EB%85%B8%ED%8A%B8%EB%B6%81+32GB",
+      "access_requirement": "공식 상품 피드/파트너스 API 접근 승인 필요"
+    },
+    {
+      "site": "11번가",
+      "url": "https://www.11st.co.kr/products/9327563209",
+      "access_requirement": "공식 Open API 상품검색 키 필요; robots 수집 불허 유지"
+    },
+    {
+      "site": "G마켓",
+      "url": "https://www.gmarket.co.kr/n/search?keyword=%EB%85%B8%ED%8A%B8%EB%B6%81+32gb"
+    },
+    {
+      "site": "옥션",
+      "url": "https://www.auction.co.kr/n/search?keyword=%EB%85%B8%ED%8A%B8%EB%B6%81+32gb"
+    },
+    {
+      "site": "SSG",
+      "url": "https://www.ssg.com/"
+    },
+    {
+      "site": "롯데하이마트",
+      "url": "https://www.e-himart.co.kr/app/goods/goodsDetail?goodsNo=0070752006"
+    },
+    {
+      "site": "삼성",
+      "url": "https://www.samsung.com/sec/galaxybook/galaxy-book6-series/buy/"
+    },
+    {
+      "site": "LG",
+      "url": "https://www.lge.co.kr/notebook"
+    },
+    {
+      "site": "ASUS",
+      "url": "https://www.asus.com/kr/store/laptops/"
+    },
+    {
+      "site": "HP",
+      "url": "https://www.hp.com/kr-ko/shop/laptops-tablets.html"
+    },
+    {
+      "site": "다나와",
+      "url": "https://prod.danawa.com/list/?cate=112758"
+    },
+    {
+      "site": "에누리",
+      "url": "https://m.enuri.com/m/list.jsp?cate=0404"
+    }
+  ],
+  "buyer_profile": {
+    "membership": "일반/최하위 등급 기준; VIP 전용 쇼핑몰 혜택 제외",
+    "skt_membership": "T멤버십 VIP; 11번가 적용·중복 가능 여부 별도 확인",
+    "payment_methods": [
+      "KB국민 신용",
+      "우리 신용",
+      "KB국민 체크",
+      "하나 카카오페이 체크",
+      "하나 트래블로그 체크",
+      "카카오뱅크 체크",
+      "토스뱅크 체크",
+      "네이버페이",
+      "카카오페이"
+    ],
+    "price_bands_krw": [
+      [
+        1500000,
+        1900000
+      ],
+      [
+        1900000,
+        2300000
+      ],
+      [
+        2300000,
+        3000000
+      ]
+    ],
+    "min_ram_gb": 32,
+    "max_weight_kg": 1.6,
+    "domestic_as_required": true,
+    "weights": {
+      "value": 40,
+      "ai_development": 30,
+      "portability": 20,
+      "gaming": 10
+    }
+  },
+  "ignored_links": [
+    {
+      "url": "https://link.coupang.com/a/h45ejN57u0",
+      "product_id": "8837247802",
+      "item_id": "24983983526",
+      "reason": "쿠팡 검색 결과 수납함 상품으로 확인; 노트북 대상에서 제외",
+      "evidence_url": "https://www.coupang.com/vp/products/8837247802"
+    }
+  ],
+  "catalog_review_notifications": true
 }
