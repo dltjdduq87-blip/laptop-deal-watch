@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['watch.py', 'config.json', 'core.py', 'test_watch.py', 'catalog.py', 'test_catalog.py', 'requirements.txt', '.github/workflows/watch.yml']
+    paths: ['watch.py', 'config.json', 'core.py', 'test_watch.py', 'catalog.py', 'elevenst.py', 'test_catalog.py', 'requirements.txt', '.github/workflows/watch.yml']
 permissions:
   contents: write
 concurrency:
@@ -34,6 +34,7 @@ jobs:
         id: collect
         continue-on-error: true
         env:
+          ELEVENST_API_KEY: ${{ secrets.ELEVENST_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
