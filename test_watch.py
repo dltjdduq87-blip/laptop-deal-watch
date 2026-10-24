@@ -70,9 +70,9 @@ class ImprovementsTests(unittest.TestCase):
    self.assertFalse(deliver(state,report,'x','message'))
   self.assertIn('telegram',report['deliveries'][0]['pending_channels'])
  def run_monitor(self,dry=False,page=PAGE,send=True):
-  import watch,json
+  import watch,json,os
   Path('config.json').write_text(json.dumps({'scope':'fixture','sources':[SOURCE],'unsupported':[]}))
-  with patch.object(sys,'argv',['watch.py']+(['--dry-run'] if dry else [])),patch('watch.fetch',return_value=page),patch('watch.time.sleep'),patch('watch.telegram',return_value=send),patch('watch.email',return_value=False):
+  with patch.dict(os.environ,{'GITHUB_STEP_SUMMARY':''}),patch.object(sys,'argv',['watch.py']+(['--dry-run'] if dry else [])),patch('watch.fetch',return_value=page),patch('watch.time.sleep'),patch('watch.telegram',return_value=send),patch('watch.email',return_value=False):
    result=watch.main()
   return result,json.loads(Path('report.json').read_text())
  def test_main_baseline_change_retry_and_no_duplicate(self):
