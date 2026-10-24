@@ -16,8 +16,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 7 프로세서 255H",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tp-kd7wk",
-        "observed_at": "2026-10-24T14:46:23.638200+00:00",
-        "html_sha256": "4d5d4092f4aa16cf236e54b9d86918e59f2a8c791ec47dc9263387d52205a3f9",
+        "observed_at": "2026-10-24T16:43:50.387710+00:00",
+        "html_sha256": "682ed6e6d7378a3b08acebbf5c81e7e12d7804814d9a39b7ca050c3f49fa26b9",
         "advertised_max_benefit_unverified": 2920200,
         "payment_methods": [
           {
@@ -111,8 +111,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 5 프로세서 226V",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tl-gs5wk",
-        "observed_at": "2026-10-24T14:46:26.312444+00:00",
-        "html_sha256": "f5ad2721874da80ce0366e216d3fbe1f9642592ca8caa039c7cd0f9f9ba21f8d",
+        "observed_at": "2026-10-24T16:43:54.573639+00:00",
+        "html_sha256": "d6c9e318b6376b84587f0509e7a8be8296a81f2339ff293c7fcc2f6ad2a5c171",
         "advertised_max_benefit_unverified": 1990200,
         "payment_methods": [
           {
@@ -206,8 +206,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 5 프로세서 225H",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tp-ka5wk",
-        "observed_at": "2026-10-24T14:46:27.303361+00:00",
-        "html_sha256": "f7dcda43c2d851d9733af68091cad6cfef5ed531b0fd91308501a77b4cdc29ad",
+        "observed_at": "2026-10-24T16:43:55.703049+00:00",
+        "html_sha256": "fff99b0fbf2243ec42047a763ceb022c8aee10473994437b2376689711dab8b4",
         "advertised_max_benefit_unverified": 2129700,
         "payment_methods": [
           {
@@ -301,8 +301,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra X7 프로세서 358H",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90u-ku7wk",
-        "observed_at": "2026-10-24T14:46:28.625202+00:00",
-        "html_sha256": "257c3f45b1ed471e8b9331adfc9b21899e724fc0127b5dbdeb4d23ff8da744ae",
+        "observed_at": "2026-10-24T16:43:56.966642+00:00",
+        "html_sha256": "832a5361f51fa8585f6a90da69da6a791d2d111e876e1f327bde46dbdc07d2ed",
         "advertised_max_benefit_unverified": 3450300,
         "payment_methods": [
           {
@@ -396,8 +396,8 @@
         "in_stock": true,
         "cpu": "AMD Ryzen AI 5 435",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z95u-gs5wk",
-        "observed_at": "2026-10-24T14:46:29.544629+00:00",
-        "html_sha256": "c9cf85c0cb19722532e9c127fe15e10ddd7df47c21d54ac4334fccff7ec5d97c",
+        "observed_at": "2026-10-24T16:43:58.140199+00:00",
+        "html_sha256": "a8cf73e0f0c6e8bc578a196b4a9766b24debad562191cb91ae7a58521d2bf4fd",
         "advertised_max_benefit_unverified": 2269200,
         "payment_methods": [
           {
@@ -586,8 +586,8 @@
         "in_stock": true,
         "cpu": null,
         "spec_source_url": "https://www.samsung.com/sec/galaxybook/galaxy-book6-pro-nt960xjg-kc71s/NT960XJG-KC71S/",
-        "observed_at": "2026-10-24T14:46:25.145549+00:00",
-        "html_sha256": "e502f4692c2747c34ccf95d03893fed2267bf3f6fea44df6e73ab01cf967b42a",
+        "observed_at": "2026-10-24T16:43:53.396772+00:00",
+        "html_sha256": "c96190011eab47f37fa7869f7ef5743180efeac760ff364003b425e60fe80993",
         "advertised_max_benefit_unverified": null,
         "payment_methods": [
           {
@@ -743,5 +743,67 @@
     "다나와:a5c0adbd9cc6c160": 2789000,
     "다나와:0eacf153ccf3f602": 2888980
   },
-  "health_signature": "763356c033d1d45d"
+  "health_signature": "763356c033d1d45d",
+  "detail_specs": {
+    "https://prod.danawa.com/info/?pcode=73691981&cate=112758": {
+      "ram_gb": 32,
+      "weight_kg": 1.56,
+      "observed_at": "2026-10-24T16:43:48.390556+00:00"
+    },
+    "https://prod.danawa.com/info/?pcode=74051768&cate=112758": {
+      "ram_gb": 32,
+      "weight_kg": 1.56,
+      "observed_at": "2026-10-24T16:43:48.390567+00:00"
+    },
+    "https://prod.danawa.com/info/?pcode=74248589&cate=112758": {
+      "ram_gb": 32,
+      "weight_kg": 1.56,
+      "observed_at": "2026-10-24T16:43:48.390569+00:00"
+    },
+    "https://prod.danawa.com/info/?pcode=74051783&cate=112758": {
+      "ram_gb": 32,
+      "weight_kg": 1.56,
+      "observed_at": "2026-10-24T16:43:48.390570+00:00"
+    },
+    "https://price.enuri.com/catalog/133583093": {
+      "ram_gb": 16,
+      "weight_kg": 1.29,
+      "observed_at": "2026-10-24T16:43:48.390571+00:00"
+    },
+    "https://price.enuri.com/catalog/141170825": {
+      "ram_gb": 16,
+      "weight_kg": 1.55,
+      "observed_at": "2026-10-24T16:43:48.390572+00:00"
+    },
+    "https://price.enuri.com/catalog/131155020": {
+      "ram_gb": 16,
+      "weight_kg": 1.29,
+      "observed_at": "2026-10-24T16:43:48.390573+00:00"
+    },
+    "https://price.enuri.com/catalog/142201194": {
+      "ram_gb": 16,
+      "weight_kg": 1.29,
+      "observed_at": "2026-10-24T16:43:48.390574+00:00"
+    },
+    "https://price.enuri.com/catalog/118420361": {
+      "ram_gb": 16,
+      "weight_kg": 1.29,
+      "observed_at": "2026-10-24T16:43:48.390576+00:00"
+    },
+    "https://price.enuri.com/catalog/131126566": {
+      "ram_gb": 16,
+      "weight_kg": 1.29,
+      "observed_at": "2026-10-24T16:43:48.390577+00:00"
+    },
+    "https://price.enuri.com/catalog/131155326": {
+      "ram_gb": 16,
+      "weight_kg": 1.199,
+      "observed_at": "2026-10-24T16:43:48.390578+00:00"
+    },
+    "https://price.enuri.com/catalog/131126154": {
+      "ram_gb": 16,
+      "weight_kg": 1.369,
+      "observed_at": "2026-10-24T16:43:48.390579+00:00"
+    }
+  }
 }
