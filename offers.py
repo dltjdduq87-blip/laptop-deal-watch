@@ -289,7 +289,15 @@ def attach_estimates(market_products, offers):
     for o in offers:
         by_list.setdefault(o.get('list_source_id'), []).append(o)
     for p in market_products:
-        est = buyer_estimate(by_list.get(p.get('source_id'), []))
+        rows = list(by_list.get(p.get('source_id'), []))
+        cards = p.get('list_card_prices') or []
+        if cards or not rows:
+            # The comparison list itself: its lowest price plus any card-special prices it shows.
+            rows.append(offer_record(p.get('site', ''), p.get('url', ''), seller=p.get('site', '') + ' 목록 최저가',
+                price=p['price_krw'], catalog_name=p.get('name', ''), shipping_krw=None,
+                conditional_prices=[{'label': c['label'], 'price_krw': c['price_krw'],
+                                     'buyer_applicability': card_applicability(c['label'])} for c in cards]))
+        est = buyer_estimate(rows)
         if est:
             p['buyer_estimate'] = est
 

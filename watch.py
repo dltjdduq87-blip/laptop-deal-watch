@@ -246,13 +246,19 @@ def status_summary(report):
  else:lines+=['정확한 모델 가격 관측 '+str(len(report['products']))+'건']
  lines+=['가격비교·목록 관측 '+str(len(report.get('market_products',[])))+'건 / 개별 모델 관측 '+str(len(report['products']))+'건 (중복 가능)']
  candidates=report.get('review_candidates',[])
- lines+=['조건별 검토 후보 '+str(len(candidates))+'개 옵션 (동일 모델 포함)']
- for band in ('150~190만원','190~230만원','230~300만원'):
-  lines.append(band+': '+str(sum(p['price_band']==band for p in candidates))+'개 옵션')
- top=sorted(candidates,key=lambda p:p.get('effective_price_krw',p['price_krw']))[:3]
- if top:
-  lines+=['예상가 낮은 후보 (공개 정보 계산, 미확인):']
-  lines+=['• '+won(p.get('effective_price_krw',p['price_krw']))+' '+p['name'][:45] for p in top]
+ models={model_key(p) for p in candidates}
+ makers=sorted({k.split()[0] for k in models})
+ lines+=['조건 충족 '+str(len(models))+'개 모델 / '+str(len(candidates))+'개 옵션 (예상가 기준)',
+         '제조사: '+(', '.join(makers) if makers else '없음')]
+ for band in BANDS:
+  lines.append(band+': '+str(len({model_key(p) for p in candidates if p['price_band']==band}))+'개 모델')
+ for band,band_rows in (report.get('top_by_band') or {}).items():
+  if band_rows:
+   lines+=['['+band+'] 예상가 TOP '+str(len(band_rows))+':']
+   lines+=['  '+str(p['band_rank'])+'. '+won(p['effective_price_krw'])+' '+p['model_key'][:40]+' ('+str(p['weight_kg'])+'kg)' for p in band_rows]
+ sweep_row=next((r for r in rows if r.get('method')),None)
+ if sweep_row and not report.get('sweep_complete',True):
+  lines+=['에누리 전체 목록 1회차 수집 중 ('+str(sweep_row['products'])+'/'+str(sweep_row.get('models_in_filter') or '?')+') · 완료 후 후보 알림 시작']
  # Raw diagnostics stay in report.json. Do not hide non-catalog failures.
  indirect=[r for r in report.get('shop_summary',[]) if r['indirect_offers'] and r['site'] not in ('다나와','에누리')]
  if report.get('offer_details') is not None:
@@ -274,11 +280,36 @@ def estimate_line(p):
  line='보유 카드 할인 표시 없음 → 최저 판매처 '+e['seller']+' '+won(e['estimated_krw'])
  return line+(' (배송비 미확인)' if not e['shipping_known'] else ' (배송비 포함)')+'\n'
 
+BANDS=('150~190만원','190~230만원','230~300만원')
+
+def model_key(p):
+ return re.sub(r'\s+',' ',str(p.get('model_key') or p.get('model') or p['name'].split(' / ')[0])).strip().upper()
+
+def rank_by_band(candidates,n=3):
+ """Best option per model (lowest effective price), then the n cheapest models per price band."""
+ best={}
+ for p in candidates:
+  k=model_key(p);cur=best.get(k)
+  if cur is None or p['effective_price_krw']<cur['effective_price_krw']:
+   best[k]={**p,'model_key':k,'options_seen':(cur or {}).get('options_seen',0)+1}
+  else:cur['options_seen']+=1
+ ranked={b:[] for b in BANDS}
+ for p in sorted(best.values(),key=lambda p:p['effective_price_krw']):
+  if p['price_band'] in ranked and len(ranked[p['price_band']])<n:
+   ranked[p['price_band']].append({**p,'band_rank':len(ranked[p['price_band']])+1})
+ return ranked
+
+def spec_line(p):
+ parts=[x for x in [p.get('cpu'),p.get('gpu'),p.get('screen'),p.get('os')] if x]
+ return ('사양: '+' · '.join(parts)+'\n') if parts else ''
+
 def candidate_message(report,p):
- return ('노트북 후보 알림 (구매 확정 추천 아님)\n'+p['name']+'\n'
-         +'공개 비교가 '+won(p['price_krw'])+' / '+p['price_band']+'\n'
+ rank=(p['price_band']+' '+str(p['band_rank'])+'위 · ') if p.get('band_rank') else ''
+ return ('노트북 후보 알림 (구매 확정 추천 아님)\n'+rank+'예상가 '+won(p['effective_price_krw'])+'\n'+p['name']+'\n'
+         +'공개 비교가 '+won(p['price_krw'])+' ('+p['site']+')\n'
          +estimate_line(p)
          +'RAM '+str(p['ram_gb'])+'GB / '+str(p['weight_kg'])+'kg\n'
+         +spec_line(p)
          +offer_lines(report,p)
          +'예상가는 공개 정보 계산값입니다. T멤버십(VIP)·쇼핑몰 쿠폰·카드 실적/한도·재고·국내 AS는 구매 전 앱에서 확인하세요.\n'+p['url'])
 
@@ -288,21 +319,24 @@ def offer_lines(report,p):
  rows=sorted(rows,key=lambda o:o['price_krw'])[:4]
  return '판매처별(간접): '+', '.join(o['seller_name']+' '+format(o['price_krw'],',')+'원' for o in rows)+'\n'
 
-def notify_status(state,report,now):
- signature=health_signature(report)
- previous=state.get('health_signature')
+def notify_status(state,report,now,config=None):
+ """No routine status chatter: one daily summary (optional) and a total-outage alert at most once a day.
+
+ Site status changes are recorded silently and shown in the next daily summary."""
+ config=config or {}
  kst=now.astimezone(timezone(timedelta(hours=9)))
  day=kst.date().isoformat()
+ state['health_signature']=health_signature(report);state.pop('pending_health',None)
+ if report.get('status')=='error' and not report.get('market_products'):
+  key='outage:'+day
+  if any(c not in state.get('sent',{}).get(key,[]) for c in enabled_channels()):
+   deliver(state,report,key,'노트북 감시 수집 전체 실패 · 오늘 감시가 멈춘 상태입니다.\n'+status_summary(report))
+  return
+ hour=config.get('daily_summary_hour_kst',10)
+ if hour is None:return
  daily_key='daily:'+day
- daily_pending=kst.hour>=10 and any(c not in state.get('sent',{}).get(daily_key,[]) for c in enabled_channels())
- changed=signature!=previous
- if not changed and not daily_pending:return
- # Merge a due daily summary with a health change into one message.
- pending=state.get('pending_health',{})
- key=daily_key if daily_pending else (pending.get('key') if pending.get('signature')==signature else 'health:'+signature+':'+now.isoformat())
- state['pending_health']={'signature':signature,'key':key}
- if deliver(state,report,key,status_summary(report)):
-  state['health_signature']=signature;state.pop('pending_health',None)
+ if kst.hour>=hour and any(c not in state.get('sent',{}).get(daily_key,[]) for c in enabled_channels()):
+  deliver(state,report,daily_key,status_summary(report))
 
 
 def main():
@@ -313,7 +347,16 @@ def main():
  state.setdefault('products',{});state.setdefault('sent',{})
  report={'observed_at':now.isoformat(),'status':'partial','deliveries':[],'delivery_receipts':DELIVERY_AUDIT,'scope':config['scope'],'products':[],'errors':[],'unsupported':config['unsupported'],'email_configured':all(os.environ.get(x) for x in ['SMTP_HOST','SMTP_USER','SMTP_PASSWORD','EMAIL_TO'])}
  from catalog import scan, review_candidate, price_band
- coverage,market_products=scan(config,fetch)
+ sweep_cfg=config.get('enuri_sweep')
+ sweep_sites={x['site'] for x in config.get('catalogs',[]) if x.get('adapter')=='enuri_sweep'}
+ coverage,market_products=scan({**config,'catalogs':[x for x in config.get('catalogs',[]) if x.get('adapter')!='enuri_sweep']},fetch)
+ if sweep_cfg and sweep_sites:
+  from sweep import sweep
+  row,found=sweep(fetch,state,sweep_cfg)
+  order=[x['site'] for x in config.get('catalogs',[])]
+  coverage.append(row);coverage.sort(key=lambda r:order.index(r['site']) if r['site'] in order else 99)
+  market_products.extend(found)
+  report['sweep_complete']=bool(state.get('enuri_sweep',{}).get('sweeps_completed'))
  report['coverage']=coverage;report['market_products']=market_products
  # Indirect seller-level prices from comparison-site detail pages; never a shop login/coupon check.
  from offers import collect_offers, enrich_specs, shop_summary, apply_spec_cache, update_spec_cache
@@ -328,17 +371,24 @@ def main():
  from offers import attach_estimates, effective_price
  attach_estimates(market_products,offer_obs)
  report['review_candidates']=[{**p,'effective_price_krw':effective_price(p),'price_band':price_band(effective_price(p)),'recommendation':'판매자·재고·국내 AS·결제조건 확인 전 검토 후보'} for p in market_products if review_candidate({**p,'price_krw':effective_price(p)})]
+ report['top_by_band']=rank_by_band(report['review_candidates'],config.get('top_per_band',3))
+ report['top_by_band_flat']=[p for band in report['top_by_band'].values() for p in band]
  report['ignored_links']=config.get('ignored_links',[])
  catalog_state=state.setdefault('catalog_prices',{})
  if not a.dry_run and config.get('catalog_review_notifications'):
-  # Only candidates that are new or cheaper than last notified; at most three per run.
-  due=[p for p in report['review_candidates'] if catalog_state.get(p['source_id']) is None or p['effective_price_krw']<catalog_state[p['source_id']]]
-  for p in sorted(due,key=lambda p:p['effective_price_krw'])[:3]:
-   key='catalog:'+p['source_id']+':'+str(p['effective_price_krw'])
-   if deliver(state,report,key,candidate_message(report,p)):catalog_state[p['source_id']]=p['effective_price_krw']
+  # Alert only models entering a price band's top list or getting cheaper there; bounded per run.
+  top_state=state.setdefault('top_alerts',{})
+  # Wait for the first full rotation so the top list is not built from a partial sweep.
+  due=[] if not report.get('sweep_complete',True) else [p for p in report['top_by_band_flat'] if top_state.get(p['model_key']) is None or p['effective_price_krw']<top_state[p['model_key']]]
+  for p in sorted(due,key=lambda p:p['effective_price_krw'])[:config.get('max_alerts_per_run',3)]:
+   key='top:'+p['model_key']+':'+str(p['effective_price_krw'])
+   before=top_state.get(p['model_key'])
+   reason='조건 충족 새 후보' if before is None else '예상가 하락 (이전 알림 '+won(before)+')'
+   if (p.get('buyer_estimate') or {}).get('basis')=='보유 결제수단 조건가':reason+=' · 보유 카드 혜택 적용'
+   if deliver(state,report,key,'['+reason+']\n'+candidate_message(report,p)):top_state[p['model_key']]=p['effective_price_krw']
  if not a.dry_run:
   deliver(state,report,'verification:'+DELIVERY_VERSION,'노트북 감시 개선 검증 알림\n공개 쿠폰 문구 변경 감지·가격 하락·재입고·전송 상태 검증을 적용했습니다.\n이 메시지는 연결 테스트이며 할인 확정 알림이 아닙니다.')
- api_sites={x['site'] for x in config.get('catalogs',[]) if x.get('adapter')}
+ api_sites={x['site'] for x in config.get('catalogs',[]) if x.get('adapter')=='elevenst_api'}
  # API replaces the same site's disallowed HTML route; retain config for audit.
  sources=[x for x in config['sources'] if x['site'] not in api_sites]
  report['superseded_sources']=[{'source':x['id'],'reason':'공식 API 수집 경로로 통합'} for x in config['sources'] if x['site'] in api_sites]
@@ -390,10 +440,13 @@ def main():
  report['shop_summary']=shop_summary(offer_obs,coverage)
  for row in coverage:
   if row['status']!='collected':report['errors'].append({'source':row['site']+' 목록','code':row.get('code','NO_PARSEABLE_PRODUCTS')})
- if not a.dry_run:notify_status(state,report,now)
+ if not a.dry_run:notify_status(state,report,now,config)
  # A bounded state file is the checkpoint. Daily event keys older than seven days are discarded.
  cutoff=(now-timedelta(days=7)).date().isoformat()
- state['sent']={k:v for k,v in state['sent'].items() if not k.startswith(('error:','daily:','health:')) or (k.split(':')[2][:10]>=cutoff if k.startswith('health:') else k.split(':')[1]>=cutoff)}
+ state['sent']={k:v for k,v in state['sent'].items() if not k.startswith(('error:','daily:','health:','outage:')) or (k.split(':')[2][:10]>=cutoff if k.startswith('health:') else k.split(':')[1]>=cutoff)}
+ # Keep only the latest delivered key per alerted model so the checkpoint stays bounded.
+ latest={'top:'+m+':'+str(v) for m,v in state.get('top_alerts',{}).items()}
+ state['sent']={k:v for k,v in state['sent'].items() if not k.startswith('top:') or k in latest or any(c not in v for c in enabled_channels())}
  report['status']='error' if not report['products'] and not market_products else ('partial' if report['errors'] else 'ok')
  report['notification_status']='dry_run' if a.dry_run else ('failed' if any(d['pending_channels'] for d in report['deliveries']) else 'ok')
  write_json('report.json',report)

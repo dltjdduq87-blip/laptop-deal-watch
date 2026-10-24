@@ -194,17 +194,14 @@ class BuyerEstimateTest(unittest.TestCase):
 
 
 class CandidateAlertTest(unittest.TestCase):
-    def test_new_candidates_beyond_cheapest_three_are_alerted_once(self):
+    def run_watch(self, market, state):
         import os, sys, tempfile
         from pathlib import Path
         from unittest.mock import patch
         import watch
-        market = [{'site': '다나와', 'source_id': 's%d' % i, 'name': '노트북 %d' % i, 'price_krw': 2000000 + i * 10000,
-                   'ram_gb': 32, 'weight_kg': 1.2, 'url': 'https://prod.danawa.com/info/?pcode=%d' % i} for i in range(5)]
-        state = {'products': {}, 'sent': {}, 'catalog_prices': {'s0': 2000000, 's1': 2010000, 's2': 2020000}}
-        config = {'scope': 'x', 'sources': [], 'unsupported': [], 'catalogs': [], 'catalog_review_notifications': True}
-        sent = []
-        previous = os.getcwd()
+        config = {'scope': 'x', 'sources': [], 'unsupported': [], 'catalogs': [], 'catalog_review_notifications': True,
+                  'top_per_band': 3, 'max_alerts_per_run': 3}
+        sent, previous = [], os.getcwd()
         with tempfile.TemporaryDirectory() as d:
             try:
                 os.chdir(d)
@@ -213,14 +210,59 @@ class CandidateAlertTest(unittest.TestCase):
                         patch('catalog.scan', return_value=([], market)), patch('offers.collect_offers', return_value=([], [], [])), \
                         patch('watch.telegram', side_effect=lambda t: sent.append(t) or True), patch('watch.email', return_value=False):
                     watch.main()
-                saved = json.loads(Path('state.json').read_text())
+                return [t for t in sent if '노트북 후보 알림' in t], json.loads(Path('state.json').read_text()), \
+                    json.loads(Path('report.json').read_text())
             finally:
                 os.chdir(previous)
-        alerts = [t for t in sent if t.startswith('노트북 후보 알림')]
-        self.assertEqual(len(alerts), 2)
-        self.assertTrue(any('노트북 3' in t for t in alerts) and any('노트북 4' in t for t in alerts))
-        self.assertTrue(all('T멤버십' in t for t in alerts))
-        self.assertEqual(saved['catalog_prices']['s4'], 2040000)
+
+    def item(self, name, price, option='SSD 512GB'):
+        return {'site': '에누리', 'source_id': name + option, 'model_key': name, 'name': name + ' / ' + option,
+                'price_krw': price, 'ram_gb': 32, 'weight_kg': 1.2, 'url': 'https://price.enuri.com/catalog/1'}
+
+    def test_top_per_band_new_or_cheaper_only_and_capped(self):
+        market = [self.item('노트북 %d' % i, 2000000 + i * 10000) for i in range(5)]
+        market.append(self.item('노트북 0', 2100000, 'SSD 1TB'))  # another option of the same model
+        market += [self.item('고가 %d' % i, 2400000 + i * 10000) for i in range(3)]
+        state = {'products': {}, 'sent': {}, 'top_alerts': {'노트북 0': 2000000, '노트북 1': 2050000}}
+        alerts, saved, report = self.run_watch(market, state)
+        self.assertEqual(len(alerts), 3)
+        joined = '\n'.join(alerts)
+        self.assertIn('노트북 1', joined); self.assertIn('노트북 2', joined); self.assertIn('고가 0', joined)
+        self.assertNotIn('노트북 0', joined); self.assertNotIn('노트북 3', joined)
+        self.assertIn('190~230만원 2위', joined)
+        top = report['top_by_band']['190~230만원']
+        self.assertEqual([p['model_key'] for p in top], ['노트북 0', '노트북 1', '노트북 2'])
+        self.assertEqual(top[0]['options_seen'], 2)
+        self.assertEqual(saved['top_alerts']['노트북 1'], 2010000)
+
+    def test_no_alerts_until_first_full_sweep(self):
+        import os, sys, tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        import watch
+        config = {'scope': 'x', 'sources': [], 'unsupported': [], 'catalog_review_notifications': True,
+                  'catalogs': [{'site': '에누리', 'adapter': 'enuri_sweep'}], 'enuri_sweep': {'spec_codes': ['1']}}
+        sent, previous = [], os.getcwd()
+        row = {'site': '에누리', 'status': 'collected', 'products': 1, 'method': 'x', 'models_in_filter': 9}
+        with tempfile.TemporaryDirectory() as d:
+            try:
+                os.chdir(d)
+                Path('config.json').write_text(json.dumps(config))
+                with patch.object(sys, 'argv', ['watch.py']), patch.dict(os.environ, {'GITHUB_STEP_SUMMARY': ''}), \
+                        patch('catalog.scan', return_value=([], [])), patch('sweep.sweep', return_value=(row, [self.item('A', 2000000)])), \
+                        patch('offers.collect_offers', return_value=([], [], [])), \
+                        patch('watch.telegram', side_effect=lambda t: sent.append(t) or True), patch('watch.email', return_value=False):
+                    watch.main()
+            finally:
+                os.chdir(previous)
+        self.assertFalse([t for t in sent if '노트북 후보 알림' in t])
+
+    def test_list_card_price_feeds_estimate(self):
+        p = self.item('카드모델', 2300000)
+        p['list_card_prices'] = [{'label': 'KB국민카드', 'price_krw': 2250000}]
+        alerts, _, report = self.run_watch([p], {'products': {}, 'sent': {}})
+        self.assertEqual(report['top_by_band']['190~230만원'][0]['effective_price_krw'], 2250000)
+        self.assertIn('KB국민', alerts[0])
 
 
 if __name__ == '__main__':

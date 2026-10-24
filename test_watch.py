@@ -118,7 +118,7 @@ class StatusTests(unittest.TestCase):
   message=status_summary(self.report())
   self.assertIn('1/2곳',message);self.assertIn('11번가: 공식 API 인증키 연결 필요',message)
   self.assertNotIn('ELEVENST_API_KEY_MISSING',message)
-  self.assertIn('놓칠 수 있습니다',message);self.assertIn('동일 모델 포함',message)
+  self.assertIn('놓칠 수 있습니다',message);self.assertIn('개 모델',message)
  def test_counts_do_not_trigger_health_alerts_but_recovery_does(self):
   from watch import health_signature
   r=self.report();initial=health_signature(r)
@@ -132,16 +132,23 @@ class StatusTests(unittest.TestCase):
   with patch('watch.telegram',return_value=True) as send,patch('watch.email',return_value=False):
    notify_status(state,r,now);notify_status(state,r,now)
    self.assertEqual(send.call_count,1)
- def test_failed_health_delivery_retries_same_event(self):
+ def test_status_change_is_silent_daily_once_and_outage_once(self):
   from watch import notify_status
   from datetime import datetime,timezone,timedelta
-  state={'sent':{'daily:2026-10-24':['telegram']}};r=self.report();now=datetime(2026,10,24,9,tzinfo=timezone.utc)
-  with patch('watch.telegram',return_value=False),patch('watch.email',return_value=False):
+  r=self.report();state={'sent':{'daily:2026-10-24':['telegram']}};now=datetime(2026,10,24,9,tzinfo=timezone.utc)
+  with patch('watch.telegram',return_value=True) as send,patch('watch.email',return_value=False):
    notify_status(state,r,now)
-  event=state['pending_health']['key'];self.assertNotIn('health_signature',state)
-  with patch('watch.telegram',return_value=True),patch('watch.email',return_value=False):
-   notify_status(state,r,now+timedelta(minutes=5))
-  self.assertIn(event,state['sent']);self.assertNotIn('pending_health',state)
+   r2={**r,'coverage':[{**c,'status':'blocked','code':'HTTP_403'} for c in r['coverage']]}
+   notify_status(state,r2,now+timedelta(minutes=5))
+   self.assertEqual(send.call_count,0)
+   notify_status(state,r,datetime(2026,10,25,1,30,tzinfo=timezone.utc))
+   notify_status(state,r,datetime(2026,10,25,1,35,tzinfo=timezone.utc))
+   self.assertEqual(send.call_count,1)
+   dead={**r,'status':'error','market_products':[]}
+   notify_status(state,dead,datetime(2026,10,25,2,tzinfo=timezone.utc));notify_status(state,dead,datetime(2026,10,25,2,5,tzinfo=timezone.utc))
+   self.assertEqual(send.call_count,2)
+   notify_status({'sent':{}},r,datetime(2026,10,25,1,30,tzinfo=timezone.utc),{'daily_summary_hour_kst':None})
+   self.assertEqual(send.call_count,2)
  def test_api_site_does_not_repeat_disallowed_html_fetch(self):
   import tempfile,os,json,watch
   from datetime import datetime,timezone

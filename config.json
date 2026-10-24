@@ -114,7 +114,9 @@
     },
     {
       "site": "에누리",
-      "url": "https://price.enuri.com/list?activeOption=isLowestPriceIn30Days&category=0404"
+      "adapter": "enuri_sweep",
+      "url": "https://price.enuri.com/list?category=0404",
+      "note": "조건 필터 목록(RAM 32GB+·1.7kg 미만·예산·중고/렌탈 제외)을 실행마다 몇 페이지씩 순환 수집"
     }
   ],
   "buyer_profile": {
@@ -164,5 +166,35 @@
       "evidence_url": "https://www.coupang.com/vp/products/8837247802"
     }
   ],
-  "catalog_review_notifications": true
+  "catalog_review_notifications": true,
+  "enuri_sweep": {
+    "category": "0404",
+    "spec_codes": [
+      "5696",
+      "29260",
+      "12098",
+      "29259",
+      "235",
+      "56175",
+      "236"
+    ],
+    "spec_code_meaning": {
+      "5696": "메모리 32GB",
+      "29260": "메모리 48GB",
+      "12098": "메모리 64GB",
+      "29259": "메모리 128GB",
+      "235": "무게 1kg 미만",
+      "56175": "무게 1.0~1.4kg",
+      "236": "무게 1.4~1.7kg"
+    },
+    "start_price": 1500000,
+    "end_price": 3000000,
+    "pages_per_run": 4,
+    "delay": 1.0,
+    "max_age_hours": 24
+  },
+  "top_per_band": 3,
+  "max_alerts_per_run": 3,
+  "daily_summary_hour_kst": 10,
+  "alert_policy": "후보 조건 충족(가격대별 TOP3 진입)·예상가 하락·보유 카드 혜택·감시 상품 쿠폰 문구 변경/재입고·전체 수집 실패(하루 1회)만 알림. 사이트 상태 변화는 일일 요약에만 표시. daily_summary_hour_kst를 null로 하면 일일 요약 끔"
 }
