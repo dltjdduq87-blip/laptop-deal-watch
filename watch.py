@@ -213,6 +213,66 @@ def delivery_event(state,key,text):
  if not sent:state['sent'].pop(key,None)
  return success
 
+
+REPORT_URL='https://github.com/dltjdduq87-blip/laptop-deal-watch/blob/watch-state/report.json'
+
+def coverage_reason(row):
+ code=row.get('code','')
+ if code=='ELEVENST_API_KEY_MISSING':return '공식 API 인증키 연결 필요'
+ if code=='ROBOTS_DISALLOWED':return '사이트 수집 정책상 현재 경로 사용 불가'
+ if code=='ROBOTS_UNAVAILABLE':return '수집 허용 정책 확인 실패'
+ if code.startswith('HTTP_'):return '자동 수집 요청 거부 ('+code[5:]+')'
+ if row['status']=='no_parseable_products':return '상품별 가격 데이터 추출 미완료'
+ return '수집 실패, 상세 보고서 확인 필요'
+
+def health_signature(report):
+ # Counts and product ordering change normally; only health transitions alert.
+ payload={'coverage':sorted((r['site'],r['status'],r.get('code','')) for r in report.get('coverage',[])),
+          'errors':sorted((e['source'],e['code']) for e in report['errors'] if e['source']!='notifications')}
+ return hashlib.sha256(json.dumps(payload,sort_keys=True).encode()).hexdigest()[:16]
+
+def status_summary(report):
+ rows=report.get('coverage',[])
+ good=[r['site'] for r in rows if r['status']=='collected']
+ pending=[r for r in rows if r['status']!='collected']
+ stamp=datetime.fromisoformat(report['observed_at']).astimezone(timezone(timedelta(hours=9))).strftime('%m/%d %H:%M')
+ lines=['노트북 감시 현황 · '+stamp+' 한국시간']
+ if rows:
+  lines+=['가격 수집 '+str(len(good))+'/'+str(len(rows))+'곳'+(' · 일부 미완료' if pending else ''),
+          '수집 확인: '+', '.join(good)]
+  if pending:
+   lines+=['미완료 (아래 판매처의 할인은 놓칠 수 있습니다):']
+   lines+=['• '+r['site']+': '+coverage_reason(r) for r in pending]
+ else:lines+=['정확한 모델 가격 관측 '+str(len(report['products']))+'건']
+ lines+=['가격비교·목록 관측 '+str(len(report.get('market_products',[])))+'건 / 개별 모델 관측 '+str(len(report['products']))+'건 (중복 가능)']
+ candidates=report.get('review_candidates',[])
+ lines+=['조건별 검토 후보 '+str(len(candidates))+'개 옵션 (동일 모델 포함)']
+ for band in ('150~190만원','190~230만원','230~300만원'):
+  lines.append(band+': '+str(sum(p['price_band']==band for p in candidates))+'개 옵션')
+ # Raw diagnostics stay in report.json. Do not hide non-catalog failures.
+ catalog_sources={r['site']+' 목록' for r in rows}
+ extra=[e for e in report['errors'] if e['source'] not in catalog_sources]
+ if extra:lines+=['추가 점검 필요: '+', '.join(sorted({e['source'] for e in extra}))]
+ lines+=['회원 쿠폰·카드 중복·배송비·국내 AS는 미확인입니다.', '상세 오류·근거: '+REPORT_URL]
+ return '\n'.join(lines)
+
+def notify_status(state,report,now):
+ signature=health_signature(report)
+ previous=state.get('health_signature')
+ kst=now.astimezone(timezone(timedelta(hours=9)))
+ day=kst.date().isoformat()
+ daily_key='daily:'+day
+ daily_pending=kst.hour>=10 and any(c not in state.get('sent',{}).get(daily_key,[]) for c in enabled_channels())
+ changed=signature!=previous
+ if not changed and not daily_pending:return
+ # Merge a due daily summary with a health change into one message.
+ pending=state.get('pending_health',{})
+ key=daily_key if daily_pending else (pending.get('key') if pending.get('signature')==signature else 'health:'+signature+':'+now.isoformat())
+ state['pending_health']={'signature':signature,'key':key}
+ if deliver(state,report,key,status_summary(report)):
+  state['health_signature']=signature;state.pop('pending_health',None)
+
+
 def main():
  args=argparse.ArgumentParser();args.add_argument('--dry-run',action='store_true');args.add_argument('--config',default='config.json');a=args.parse_args()
  config=json.loads(Path(a.config).read_text());state_path=Path('state.json')
@@ -235,7 +295,10 @@ def main():
     if deliver(state,report,key,message):catalog_state[p['source_id']]=p['price_krw']
  if not a.dry_run:
   deliver(state,report,'verification:'+DELIVERY_VERSION,'노트북 감시 개선 검증 알림\n공개 쿠폰 문구 변경 감지·가격 하락·재입고·전송 상태 검증을 적용했습니다.\n이 메시지는 연결 테스트이며 할인 확정 알림이 아닙니다.')
- sources=list(config['sources'])
+ api_sites={x['site'] for x in config.get('catalogs',[]) if x.get('adapter')}
+ # API replaces the same site's disallowed HTML route; retain config for audit.
+ sources=[x for x in config['sources'] if x['site'] not in api_sites]
+ report['superseded_sources']=[{'source':x['id'],'reason':'공식 API 수집 경로로 통합'} for x in config['sources'] if x['site'] in api_sites]
  for discovery in config.get('discovery',[]):
   try:
    doc=Document();doc.feed(fetch(discovery['url']))
@@ -283,22 +346,10 @@ def main():
  report['coverage_complete']=bool(coverage) and all(row['status']=='collected' for row in coverage)
  for row in coverage:
   if row['status']!='collected':report['errors'].append({'source':row['site']+' 목록','code':row.get('code','NO_PARSEABLE_PRODUCTS')})
- if not a.dry_run:
-  error_names=', '.join(x['source']+':'+x['code'] for x in report['errors']) or '없음'
-  summary=('노트북 감시 상태\n공개 가격 관측 '+str(len(report['products']))+'개 / 조건 일치 후보 '+str(sum(qualifies_candidate(p) for p in report['products']))+'개\n수집 오류: '+error_names+'\n가동 범위: '+config['scope']+'\n이메일: '+('설정됨' if report['email_configured'] else '미연결')+'\n미지원: '+', '.join(x['site'] for x in config['unsupported'])+'\n확정 실구매가·쿠폰/카드 개인 적용·AI/게임 성능 총점은 미검증입니다.')
-  if coverage:
-   summary+='\n쇼핑몰 수집 '+str(sum(row['status']=='collected' for row in coverage))+'/'+str(len(coverage))+'곳 / 가격비교 관측 '+str(len(market_products))+'건 / 검토 후보 '+str(len(report['review_candidates']))+'건\n미완료: '+', '.join(row['site'] for row in coverage if row['status']!='collected')
-   summary+='\n가격대별 검토 후보: '+', '.join(band+' '+str(sum(p['price_band']==band for p in report['review_candidates']))+'건' for band in ('150~190만원','190~230만원','230~300만원'))
-  if not state.get('boot_sent'):
-   if deliver(state,report,'boot',summary):state['boot_sent']=True
-  if report['errors']:
-   fingerprint=hashlib.sha256(json.dumps(report['errors'],sort_keys=True).encode()).hexdigest()[:16]
-   deliver(state,report,'error:'+day+':'+fingerprint,'감시 오류 알림\n'+summary)
-  kst=now.astimezone(timezone(timedelta(hours=9)))
-  if kst.hour>=10:deliver(state,report,'daily:'+day,summary)
+ if not a.dry_run:notify_status(state,report,now)
  # A bounded state file is the checkpoint. Daily event keys older than seven days are discarded.
  cutoff=(now-timedelta(days=7)).date().isoformat()
- state['sent']={k:v for k,v in state['sent'].items() if not k.startswith(('error:','daily:')) or k.split(':')[1]>=cutoff}
+ state['sent']={k:v for k,v in state['sent'].items() if not k.startswith(('error:','daily:','health:')) or (k.split(':')[2][:10]>=cutoff if k.startswith('health:') else k.split(':')[1]>=cutoff)}
  report['status']='error' if not report['products'] and not market_products else ('partial' if report['errors'] else 'ok')
  report['notification_status']='dry_run' if a.dry_run else ('failed' if any(d['pending_channels'] for d in report['deliveries']) else 'ok')
  write_json('report.json',report)

@@ -106,4 +106,56 @@ class ImprovementsTests(unittest.TestCase):
   import os
   with patch.dict(os.environ,{},clear=True):self.assertFalse(telegram('test'))
 
+class StatusTests(unittest.TestCase):
+ def report(self):
+  return {'observed_at':'2026-10-24T09:00:00+00:00','coverage':[
+   {'site':'LG','status':'collected','products':5},
+   {'site':'11번가','status':'blocked','products':0,'code':'ELEVENST_API_KEY_MISSING'}],
+   'products':[],'market_products':[],'review_candidates':[],'errors':[
+   {'source':'11번가 목록','code':'ELEVENST_API_KEY_MISSING'}],'deliveries':[]}
+ def test_readable_status_preserves_missing_shop(self):
+  from watch import status_summary
+  message=status_summary(self.report())
+  self.assertIn('1/2곳',message);self.assertIn('11번가: 공식 API 인증키 연결 필요',message)
+  self.assertNotIn('ELEVENST_API_KEY_MISSING',message)
+  self.assertIn('놓칠 수 있습니다',message);self.assertIn('동일 모델 포함',message)
+ def test_counts_do_not_trigger_health_alerts_but_recovery_does(self):
+  from watch import health_signature
+  r=self.report();initial=health_signature(r)
+  r['coverage'][0]['products']=9;self.assertEqual(initial,health_signature(r))
+  r['coverage'][1].update(status='collected',code='');r['errors']=[]
+  self.assertNotEqual(initial,health_signature(r))
+ def test_one_daily_message_instead_of_daily_plus_error(self):
+  from watch import notify_status
+  from datetime import datetime,timezone
+  state={};r=self.report();now=datetime(2026,10,24,9,tzinfo=timezone.utc)
+  with patch('watch.telegram',return_value=True) as send,patch('watch.email',return_value=False):
+   notify_status(state,r,now);notify_status(state,r,now)
+   self.assertEqual(send.call_count,1)
+ def test_failed_health_delivery_retries_same_event(self):
+  from watch import notify_status
+  from datetime import datetime,timezone,timedelta
+  state={'sent':{'daily:2026-10-24':['telegram']}};r=self.report();now=datetime(2026,10,24,9,tzinfo=timezone.utc)
+  with patch('watch.telegram',return_value=False),patch('watch.email',return_value=False):
+   notify_status(state,r,now)
+  event=state['pending_health']['key'];self.assertNotIn('health_signature',state)
+  with patch('watch.telegram',return_value=True),patch('watch.email',return_value=False):
+   notify_status(state,r,now+timedelta(minutes=5))
+  self.assertIn(event,state['sent']);self.assertNotIn('pending_health',state)
+ def test_api_site_does_not_repeat_disallowed_html_fetch(self):
+  import tempfile,os,json,watch
+  from datetime import datetime,timezone
+  previous=os.getcwd();r=self.report()
+  config={'scope':'fixture','sources':[{'id':'11st-old','site':'11번가','url':'https://www.11st.co.kr/products/123'}],
+   'catalogs':[{'site':'11번가','adapter':'elevenst_api'}],'unsupported':[]}
+  with tempfile.TemporaryDirectory() as d:
+   try:
+    os.chdir(d);Path('config.json').write_text(json.dumps(config))
+    with patch.object(sys,'argv',['watch.py','--dry-run']),patch.dict(os.environ,{'GITHUB_STEP_SUMMARY':''}),patch('catalog.scan',return_value=(r['coverage'],[])),patch('watch.fetch') as fetch:
+     watch.main()
+    fetch.assert_not_called()
+    output=json.loads(Path('report.json').read_text());self.assertEqual(len(output['errors']),1)
+    self.assertEqual(output['superseded_sources'][0]['source'],'11st-old')
+   finally:os.chdir(previous)
+
 if __name__=='__main__':unittest.main()
