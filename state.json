@@ -16,8 +16,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 7 프로세서 255H",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tp-kd7wk",
-        "observed_at": "2026-10-24T06:24:56.727546+00:00",
-        "html_sha256": "610e55186b813f7650574d3d827212fd8307b1c02c1b910beb15b59ab27aef44",
+        "observed_at": "2026-10-24T07:18:37.155758+00:00",
+        "html_sha256": "e318cdc49c99496cb8dcd244489ae0159791b22292024e369dbdfcd749c147ac",
         "advertised_max_benefit_unverified": 2920200,
         "payment_methods": [
           {
@@ -69,6 +69,15 @@
         "seller": "제조사 공식몰",
         "shipping_verified_krw": null,
         "discounts_verified": false,
+        "coupon_evidence": {
+          "snippets": [
+            "혜택은 적용하는 쿠폰, 카드사에 따라 다르게 계산되어, 실제 적용시 최대 혜택가와 다를 수 있습니다. 상세내용은 구매 혜택 안내에서 확인 가능합니다."
+          ],
+          "fingerprint": "f7afcfcbaac7ed5d8db6753296efab1b0cce5e316edc104da68a94077e095cd4",
+          "eligibility": "미확인",
+          "stacking_verified": false,
+          "deadline_verified": false
+        },
         "matches_public_price_filter": false,
         "matches_advertised_budget_filter": true,
         "assessment": {
@@ -102,8 +111,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 5 프로세서 226V",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tl-gs5wk",
-        "observed_at": "2026-10-24T06:25:02.439419+00:00",
-        "html_sha256": "4a56e36f120c703cecf0405a028da00f7a9316c5a305470c2a2327c5355b1a29",
+        "observed_at": "2026-10-24T07:18:41.548320+00:00",
+        "html_sha256": "763cbf7e17d2dd6de0e6c6c8997b0c3eb61babb52a9fe810459c239e52153702",
         "advertised_max_benefit_unverified": 1990200,
         "payment_methods": [
           {
@@ -155,6 +164,15 @@
         "seller": "제조사 공식몰",
         "shipping_verified_krw": null,
         "discounts_verified": false,
+        "coupon_evidence": {
+          "snippets": [
+            "혜택은 적용하는 쿠폰, 카드사에 따라 다르게 계산되어, 실제 적용시 최대 혜택가와 다를 수 있습니다. 상세내용은 구매 혜택 안내에서 확인 가능합니다."
+          ],
+          "fingerprint": "f7afcfcbaac7ed5d8db6753296efab1b0cce5e316edc104da68a94077e095cd4",
+          "eligibility": "미확인",
+          "stacking_verified": false,
+          "deadline_verified": false
+        },
         "matches_public_price_filter": false,
         "matches_advertised_budget_filter": false,
         "assessment": {
@@ -188,8 +206,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 5 프로세서 225H",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tp-ka5wk",
-        "observed_at": "2026-10-24T06:25:03.329419+00:00",
-        "html_sha256": "07a2f295eaea7c64c604490b66447a05c52bd319e4ccd1969ad92f0baf01e0b2",
+        "observed_at": "2026-10-24T07:18:42.662305+00:00",
+        "html_sha256": "c5c85d2cd45e9f689126981bb95f76484119782af0070cc3ecc327a2ccb63d4e",
         "advertised_max_benefit_unverified": 2129700,
         "payment_methods": [
           {
@@ -241,6 +259,15 @@
         "seller": "제조사 공식몰",
         "shipping_verified_krw": null,
         "discounts_verified": false,
+        "coupon_evidence": {
+          "snippets": [
+            "혜택은 적용하는 쿠폰, 카드사에 따라 다르게 계산되어, 실제 적용시 최대 혜택가와 다를 수 있습니다. 상세내용은 구매 혜택 안내에서 확인 가능합니다."
+          ],
+          "fingerprint": "f7afcfcbaac7ed5d8db6753296efab1b0cce5e316edc104da68a94077e095cd4",
+          "eligibility": "미확인",
+          "stacking_verified": false,
+          "deadline_verified": false
+        },
         "matches_public_price_filter": false,
         "matches_advertised_budget_filter": false,
         "assessment": {
@@ -360,8 +387,8 @@
         "in_stock": true,
         "cpu": "AMD Ryzen AI 5 435",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z95u-gs5wk",
-        "observed_at": "2026-10-24T06:25:05.263978+00:00",
-        "html_sha256": "30581c65da43a6cfdbd7514050971616418ba0470519dc1c287cf56e43008e76",
+        "observed_at": "2026-10-24T07:18:43.652220+00:00",
+        "html_sha256": "b3d3ed09349fbca6de7847be3136a2a2c2003c73cd2bf408d1a4c0f30d35c984",
         "advertised_max_benefit_unverified": 2269200,
         "payment_methods": [
           {
@@ -413,6 +440,15 @@
         "seller": "제조사 공식몰",
         "shipping_verified_krw": null,
         "discounts_verified": false,
+        "coupon_evidence": {
+          "snippets": [
+            "혜택은 적용하는 쿠폰, 카드사에 따라 다르게 계산되어, 실제 적용시 최대 혜택가와 다를 수 있습니다. 상세내용은 구매 혜택 안내에서 확인 가능합니다."
+          ],
+          "fingerprint": "f7afcfcbaac7ed5d8db6753296efab1b0cce5e316edc104da68a94077e095cd4",
+          "eligibility": "미확인",
+          "stacking_verified": false,
+          "deadline_verified": false
+        },
         "matches_public_price_filter": false,
         "matches_advertised_budget_filter": false,
         "assessment": {
@@ -446,8 +482,8 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 5 프로세서 125U",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/15zb90s-ga5wk",
-        "observed_at": "2026-10-24T01:32:22.562754+00:00",
-        "html_sha256": "ea06a2fa8ffdc12165be31465125613f8d5de6a42e251e489954a72a149d9a70",
+        "observed_at": "2026-10-24T07:18:40.710939+00:00",
+        "html_sha256": "55db58a34a782c8fb2c9303757ca29684523892a90d89eb356d8a5653fef3269",
         "advertised_max_benefit_unverified": 1683300,
         "payment_methods": [
           {
@@ -499,6 +535,15 @@
         "seller": "제조사 공식몰",
         "shipping_verified_krw": null,
         "discounts_verified": false,
+        "coupon_evidence": {
+          "snippets": [
+            "혜택은 적용하는 쿠폰, 카드사에 따라 다르게 계산되어, 실제 적용시 최대 혜택가와 다를 수 있습니다. 상세내용은 구매 혜택 안내에서 확인 가능합니다."
+          ],
+          "fingerprint": "f7afcfcbaac7ed5d8db6753296efab1b0cce5e316edc104da68a94077e095cd4",
+          "eligibility": "미확인",
+          "stacking_verified": false,
+          "deadline_verified": false
+        },
         "matches_public_price_filter": false,
         "matches_advertised_budget_filter": false,
         "assessment": {
@@ -529,6 +574,9 @@
       "telegram"
     ],
     "daily:2026-10-24": [
+      "telegram"
+    ],
+    "verification:2026-10-24-coupon-watch-v1": [
       "telegram"
     ]
   },
