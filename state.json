@@ -16,7 +16,7 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 7 프로세서 255H",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tp-kd7wk",
-        "observed_at": "2026-10-24T07:18:37.155758+00:00",
+        "observed_at": "2026-10-24T07:20:33.128034+00:00",
         "html_sha256": "e318cdc49c99496cb8dcd244489ae0159791b22292024e369dbdfcd749c147ac",
         "advertised_max_benefit_unverified": 2920200,
         "payment_methods": [
@@ -111,7 +111,7 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 5 프로세서 226V",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tl-gs5wk",
-        "observed_at": "2026-10-24T07:18:41.548320+00:00",
+        "observed_at": "2026-10-24T07:20:36.683619+00:00",
         "html_sha256": "763cbf7e17d2dd6de0e6c6c8997b0c3eb61babb52a9fe810459c239e52153702",
         "advertised_max_benefit_unverified": 1990200,
         "payment_methods": [
@@ -206,7 +206,7 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 5 프로세서 225H",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z90tp-ka5wk",
-        "observed_at": "2026-10-24T07:18:42.662305+00:00",
+        "observed_at": "2026-10-24T07:20:37.185135+00:00",
         "html_sha256": "c5c85d2cd45e9f689126981bb95f76484119782af0070cc3ecc327a2ccb63d4e",
         "advertised_max_benefit_unverified": 2129700,
         "payment_methods": [
@@ -387,7 +387,7 @@
         "in_stock": true,
         "cpu": "AMD Ryzen AI 5 435",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/16z95u-gs5wk",
-        "observed_at": "2026-10-24T07:18:43.652220+00:00",
+        "observed_at": "2026-10-24T07:20:37.676242+00:00",
         "html_sha256": "b3d3ed09349fbca6de7847be3136a2a2c2003c73cd2bf408d1a4c0f30d35c984",
         "advertised_max_benefit_unverified": 2269200,
         "payment_methods": [
@@ -482,7 +482,7 @@
         "in_stock": true,
         "cpu": "인텔® 코어™ Ultra 5 프로세서 125U",
         "spec_source_url": "https://www.lge.co.kr/product/notebook/15zb90s-ga5wk",
-        "observed_at": "2026-10-24T07:18:40.710939+00:00",
+        "observed_at": "2026-10-24T07:20:36.184923+00:00",
         "html_sha256": "55db58a34a782c8fb2c9303757ca29684523892a90d89eb356d8a5653fef3269",
         "advertised_max_benefit_unverified": 1683300,
         "payment_methods": [
