@@ -21,6 +21,7 @@ class LocalLauncherTests(unittest.TestCase):
     def test_only_fixed_https_sites_no_credentials(self):
         from urllib.parse import urlsplit
         self.assertEqual(len(app.SITES), 13)
+        self.assertTrue(app.SITES['네이버쇼핑'].startswith('https://nid.naver.com/'))
         for url in app.SITES.values():
             parsed = urlsplit(url)
             self.assertEqual(parsed.scheme, 'https')

@@ -13,7 +13,8 @@ import threading
 import sys
 
 SITES = {
-    '네이버쇼핑': 'https://shopping.naver.com/',
+    # shopping.naver.com shows a human security check (HTTP 405) to automated browsers; start at login.
+    '네이버쇼핑': 'https://nid.naver.com/nidlogin.login?url=https%3A%2F%2Fshopping.naver.com%2F',
     '쿠팡': 'https://www.coupang.com/',
     '11번가': 'https://www.11st.co.kr/',
     'G마켓': 'https://www.gmarket.co.kr/',
@@ -179,7 +180,7 @@ def browser_worker(commands, events, profile, channel):
                     try:
                         response = page.goto(SITES[site], wait_until='domcontentloaded', timeout=20000)
                         failed = response is not None and response.status >= 400
-                        events.put(('site', (site, '접속 오류 · 브라우저 확인' if failed else '창 열림 · 로그인은 직접 확인')))
+                        events.put(('site', (site, '보안 확인·접근 제한 화면일 수 있음 · 브라우저에서 직접 확인' if failed else '창 열림 · 로그인은 직접 확인')))
                     except Exception:
                         events.put(('site', (site, '접속 미확인 · 브라우저 확인')))
                 page.bring_to_front()
