@@ -175,12 +175,16 @@ def scan(config,fetch):
         row={'site':shop['site'],'url':shop['url'],'status':'pending','products':0,'coupon_verified':False,
              'personal_checkout_verified':False,'observed_at':datetime.now(timezone.utc).isoformat()}
         try:
-            raw=fetch(shop['url']);products=parse_catalog(raw,shop['site'],shop['url'])
+            if shop.get('adapter')=='elevenst_api':
+                from elevenst import collect as collect_api
+                products=collect_api()
+            else:
+                raw=fetch(shop['url']);products=parse_catalog(raw,shop['site'],shop['url'])
             row['products']=len(products);row['status']='collected' if products else 'no_parseable_products'
             row['next_action']=None if products else '상품별 구조화 데이터 또는 허용된 상품 피드 연동 필요'
             return row,products
         except Exception as e:
-            row['status']='blocked' if str(e).startswith(('ROBOTS','HTTP_403','HTTP_405')) else 'error'
+            row['status']='blocked' if str(e).startswith(('ROBOTS','HTTP_403','HTTP_405','ELEVENST_API_KEY_MISSING')) else 'error'
             row['code']=str(e) if isinstance(e,ValueError) else type(e).__name__
             row['next_action']=shop.get('access_requirement','공개 상품 피드 또는 공식 API 연결 필요')
             return row,[]

@@ -73,7 +73,8 @@
     {
       "site": "11번가",
       "url": "https://www.11st.co.kr/products/9327563209",
-      "access_requirement": "공식 Open API 상품검색 키 필요; robots 수집 불허 유지"
+      "access_requirement": "공식 Open API 상품검색 키 필요; robots 수집 불허 유지",
+      "adapter": "elevenst_api"
     },
     {
       "site": "G마켓",

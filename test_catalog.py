@@ -45,6 +45,22 @@ class CatalogTests(unittest.TestCase):
   with self.assertRaises(ValueError):validate_url('https://prod.danawa.com.evil.test/')
   with self.assertRaises(ValueError):validate_url('https://127.0.0.1/')
 
+class ElevenstTests(unittest.TestCase):
+ def test_missing_api_key_never_calls_network(self):
+  import os
+  from elevenst import collect
+  from unittest.mock import patch
+  with patch.dict(os.environ,{},clear=True),patch('elevenst.request.Request') as req:
+   with self.assertRaisesRegex(ValueError,'ELEVENST_API_KEY_MISSING'):collect()
+   req.assert_not_called()
+ def test_xml_price_is_not_personal_discount(self):
+  from elevenst import parse_search
+  raw=b'<ProductSearchResponse><Request><key>SECRET</key></Request><Products><Product><ProductCode>42</ProductCode><ProductName>laptop RAM 32GB</ProductName><ProductPrice>2000000</ProductPrice><SalePrice>1800000</SalePrice><DetailPageUrl>http://www.11st.co.kr/products/42</DetailPageUrl></Product></Products></ProductSearchResponse>'
+  p=parse_search(raw)[0];self.assertEqual(p['price_krw'],2000000);self.assertIsNone(p['checkout_verified_krw']);self.assertNotIn('SECRET',str(p))
+ def test_xml_entities_rejected(self):
+  from elevenst import parse_search
+  with self.assertRaisesRegex(ValueError,'ELEVENST_UNSAFE_XML'):parse_search(b'<!DOCTYPE x><x/>')
+
 class MoreCatalogTests(unittest.TestCase):
  def test_enuri_canonical_product_host_is_allowed(self):
   p={**VARIANT,'name':'HP Nexos 14','offers':{'@type':'AggregateOffer','priceCurrency':'KRW','lowPrice':1800000},'url':'https://price.enuri.com/catalog/1'}

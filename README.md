@@ -30,7 +30,7 @@ python3 -m pip install -r requirements.txt
 python3 -m unittest discover -v
 python3 watch.py --dry-run
 ```
-회귀 테스트 35개: 삼성 SKU 그룹, RAM/SSD/VRAM 혼동 방지, 옵션별 가격, 잘못 전달된 비노트북 제외, 접근차단/파싱실패 상태, 기존 알림 재시도/중복방지 등을 확인합니다.
+회귀 테스트 38개: 삼성 SKU 그룹, RAM/SSD/VRAM 혼동 방지, 옵션별 가격, 잘못 전달된 비노트북 제외, 접근차단/파싱실패 상태, 기존 알림 재시도/중복방지 등을 확인합니다.
 
 ## 운영 및 한계
 예약은 `.github/workflows/watch.yml`의 기존 cron을 유지합니다. GitHub Actions의 실행 지연·누락 가능성이 있어 정확한 5분 주기를 보장하지 않습니다. `watch-state` 브랜치에 보고서와 중복방지 상태를 저장합니다. 전송 직후 프로세스 중단이나 저장 실패 시 중복 가능성은 남습니다.
@@ -43,3 +43,6 @@ python3 watch.py --dry-run
 - 쿠팡 파트너스: https://partners.coupang.com/
 - 삼성 공개 모델 데이터: https://www.samsung.com/sec/galaxybook/galaxy-book6-series/buy/
 - 다나와 공개 목록: https://prod.danawa.com/list/?cate=112758
+
+## 11번가 공식 API 연결 준비
+상품검색 API 수집기를 구현했습니다. `ELEVENST_API_KEY`가 없으면 네트워크 호출 없이 인증키 필요 상태로 기록합니다. 11번가 API 관리에서 발급받은 키를 GitHub Actions Secret `ELEVENST_API_KEY`에 저장해야 실제 API 검증을 진행할 수 있습니다. 현재 인증키 발급/실 API 호출 검증은 미완료입니다. 응답의 할인모음가는 개인 실결제가로 취급하지 않으며 인증키를 포함할 수 있는 요청 에코는 보고서에 기록하지 않습니다.
