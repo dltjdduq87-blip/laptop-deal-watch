@@ -189,7 +189,7 @@
     },
     "start_price": 1500000,
     "end_price": 3000000,
-    "pages_per_run": 4,
+    "pages_per_run": 9,
     "delay": 1.0,
     "max_age_hours": 24
   },
