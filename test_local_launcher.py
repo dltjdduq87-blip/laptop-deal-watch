@@ -37,6 +37,7 @@ class LocalLauncherTests(unittest.TestCase):
                 return types.SimpleNamespace(status=200)
             def bring_to_front(self): calls.append(('focus',))
         class Context:
+            pages = []
             def on(self, event, callback): pass
             def new_page(self):
                 calls.append(('new_page',))
@@ -126,3 +127,13 @@ class MemberCaptureTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class SingleInstanceTests(unittest.TestCase):
+    def test_second_lock_is_refused(self):
+        first = app.single_instance_lock(47999)
+        self.assertIsNotNone(first)
+        try:
+            self.assertIsNone(app.single_instance_lock(47999))
+        finally:
+            first.close()

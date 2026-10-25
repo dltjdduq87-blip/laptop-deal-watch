@@ -175,7 +175,9 @@ def browser_worker(commands, events, profile, channel):
                     continue
                 page = pages.get(site)
                 if page is None or page.is_closed():
-                    page = context.new_page()
+                    # Reuse the empty start tab so the first shop opens where the user is looking.
+                    blank = [p for p in context.pages if not p.is_closed() and p.url in ('about:blank', '') and p not in pages.values()]
+                    page = blank[0] if blank else context.new_page()
                     pages[site] = page
                     try:
                         response = page.goto(SITES[site], wait_until='domcontentloaded', timeout=20000)
@@ -224,9 +226,27 @@ def doctor():
         return 1
 
 
+def single_instance_lock(port=47819):
+    """Only one launcher may use the browser profile. Binds a localhost-only port; nothing listens remotely."""
+    import socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        sock.bind(('127.0.0.1', port))
+        return sock
+    except OSError:
+        sock.close()
+        return None
+
+
 def main():
     import tkinter as tk
     from tkinter import ttk, messagebox
+    lock = single_instance_lock()
+    if lock is None:
+        hidden = tk.Tk(); hidden.withdraw()
+        messagebox.showinfo('이미 실행 중', '노트북 감시 프로그램이 이미 열려 있습니다.\n작업표시줄에서 기존 창을 사용하세요.')
+        hidden.destroy()
+        return
     root = tk.Tk()
     root.title('노트북 감시 · 로그인 준비')
     root.geometry('820x760')
@@ -242,7 +262,7 @@ def main():
     frame = ttk.Frame(root, padding=24)
     frame.pack(fill='both', expand=True)
     ttk.Label(frame, text='내 노트북에서 로그인 준비', font=('맑은 고딕', 20, 'bold')).pack(anchor='w')
-    ttk.Label(frame, text='1. 브라우저 시작 → 2. 사이트 선택 → 3. 열린 브라우저에서 직접 로그인', wraplength=730).pack(anchor='w', pady=(10, 6))
+    ttk.Label(frame, text='1. 쇼핑몰 선택(기본 11번가) → 2. 브라우저 시작 → 3. 열린 쇼핑몰에서 직접 로그인 · 다른 쇼핑몰은 목록에서 더블클릭', wraplength=730).pack(anchor='w', pady=(10, 6))
     ttk.Label(frame, text='로그인은 직접 하세요. 혜택 기록은 누를 때만 동작하며 GitHub·텔레그램 자동 감시와는 아직 연결되지 않았습니다.', foreground='#9a3412', wraplength=730).pack(anchor='w', pady=(0, 12))
     controls = ttk.Frame(frame)
     controls.pack(fill='x')
@@ -260,6 +280,7 @@ def main():
     tree.column('status', width=540)
     for site in SITES:
         tree.insert('', 'end', iid=site, values=(site, '아직 열지 않음'))
+    tree.selection_set('11번가')
 
     def start():
         nonlocal running
@@ -278,6 +299,8 @@ def main():
         chooser.configure(state='disabled')
         status.set('전용 브라우저를 여는 중입니다…')
         threading.Thread(target=browser_worker, args=(commands, events, profile_directory(CHANNELS[selected.get()]), CHANNELS[selected.get()]), daemon=True).start()
+        # Open the selected shop right away instead of leaving an empty page.
+        commands.put(('open', (tree.selection() or ('11번가',))[0]))
 
     def open_site(event=None):
         choice = tree.selection()
