@@ -137,3 +137,17 @@ class SingleInstanceTests(unittest.TestCase):
             self.assertIsNone(app.single_instance_lock(47999))
         finally:
             first.close()
+
+
+class BlockedSiteTests(unittest.TestCase):
+    def test_block_page_points_to_normal_browser(self):
+        self.assertIn('일반 브라우저', app.site_status(200, 'Access Denied'))
+        self.assertIn('일반 브라우저', app.site_status(403, ''))
+        self.assertEqual(app.site_status(200, '11번가'), '창 열림 · 로그인은 직접 확인')
+
+    def test_normal_browser_opens_only_fixed_urls(self):
+        opened = []
+        self.assertTrue(app.open_in_normal_browser('쿠팡', opener=lambda u: opened.append(u) or True))
+        self.assertEqual(opened, ['https://www.coupang.com/'])
+        self.assertFalse(app.open_in_normal_browser('https://evil.example', opener=lambda u: opened.append(u) or True))
+        self.assertEqual(len(opened), 1)

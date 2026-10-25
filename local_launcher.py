@@ -181,8 +181,11 @@ def browser_worker(commands, events, profile, channel):
                     pages[site] = page
                     try:
                         response = page.goto(SITES[site], wait_until='domcontentloaded', timeout=20000)
-                        failed = response is not None and response.status >= 400
-                        events.put(('site', (site, '보안 확인·접근 제한 화면일 수 있음 · 브라우저에서 직접 확인' if failed else '창 열림 · 로그인은 직접 확인')))
+                        try:
+                            title = page.title()
+                        except Exception:
+                            title = ''
+                        events.put(('site', (site, site_status(response.status if response else None, title))))
                     except Exception:
                         events.put(('site', (site, '접속 미확인 · 브라우저 확인')))
                 page.bring_to_front()
@@ -194,6 +197,24 @@ def browser_worker(commands, events, profile, channel):
             events.put(('error', '브라우저를 열지 못했습니다. 같은 프로그램의 다른 창을 닫고 다시 시도하세요. Edge/Chrome 선택 시 해당 브라우저가 설치되어 있어야 합니다.'))
     finally:
         events.put(('closed', '브라우저 종료 · 로그인 유지 여부는 사이트 정책에 따라 달라집니다.'))
+
+
+BLOCK_TITLES = re.compile(r'Access Denied|접근이 거부|Forbidden|보안 확인|Attention Required|Just a moment', re.I)
+
+
+def site_status(status, title):
+    """Label only. Blocks are never bypassed: the user is pointed to their normal browser instead."""
+    if (status is not None and status >= 400) or BLOCK_TITLES.search(title or ''):
+        return '전용 브라우저 차단/보안 확인 · 직접 확인하거나 「일반 브라우저로 열기」 사용'
+    return '창 열림 · 로그인은 직접 확인'
+
+
+def open_in_normal_browser(site, opener=None):
+    """Open the fixed shop URL in the user's default browser (not automated, no profile access)."""
+    import webbrowser
+    if site not in SITES:
+        return False
+    return (opener or webbrowser.open)(SITES[site])
 
 
 def capture_active_page(context, save=save_observation):
@@ -341,7 +362,15 @@ def main():
 
     capture_button = ttk.Button(actions, text='현재 상품 화면 혜택 기록', command=capture, state='disabled')
     capture_button.pack(side='left', padx=10)
-    ttk.Label(frame, text='로그인 후 상품 페이지를 띄우고 "혜택 기록"을 누르면 화면의 가격·쿠폰 문구만 이 PC에 저장합니다 (쿠키·입력값은 읽지 않음).', wraplength=730, foreground='#475569').pack(anchor='w', pady=(6, 0))
+
+    def open_normal():
+        choice = tree.selection()
+        if choice and open_in_normal_browser(choice[0]):
+            tree.item(choice[0], values=(choice[0], '일반 브라우저에서 열림 · 그 창에서 로그인 (혜택 기록은 전용 브라우저에서만)'))
+            status.set(choice[0] + ': 평소 쓰는 브라우저에서 열었습니다.')
+
+    ttk.Button(actions, text='일반 브라우저로 열기', command=open_normal).pack(side='left')
+    ttk.Label(frame, text='로그인 후 상품 페이지를 띄우고 "혜택 기록"을 누르면 화면의 가격·쿠폰 문구만 이 PC에 저장합니다 (쿠키·입력값은 읽지 않음). 쿠팡처럼 전용 브라우저를 막는 곳은 「일반 브라우저로 열기」로 로그인하세요.', wraplength=730, foreground='#475569').pack(anchor='w', pady=(6, 0))
     ttk.Label(frame, textvariable=status, wraplength=730, foreground='#1d4ed8').pack(anchor='w', pady=(14, 8))
     ttk.Label(frame, text='로그인 완료 후에도 이 프로그램을 다시 열어 로그인 상태가 유지되는지 확인하세요.\n접근 제한이나 보안 확인이 나오면 해당 사이트에서 멈추고 화면을 알려주세요.', wraplength=730).pack(anchor='w')
 
