@@ -37,6 +37,10 @@ class CatalogTests(unittest.TestCase):
   def blocked(url):raise ValueError('ROBOTS_DISALLOWED')
   rows,ps=scan({'catalogs':[{'site':'11번가','url':'https://www.11st.co.kr/products/1'}]},blocked)
   self.assertEqual(rows[0]['status'],'blocked');self.assertEqual(ps,[])
+ def test_via_comparison_never_fetches_shop(self):
+  def never(url):raise AssertionError('must not fetch '+url)
+  rows,ps=scan({'catalogs':[{'site':'11번가','url':'https://www.11st.co.kr/products/1','adapter':'via_comparison'}]},never)
+  self.assertEqual(rows[0]['status'],'via_comparison');self.assertEqual(ps,[])
  def test_empty_catalog_is_not_healthy(self):
   rows,ps=scan({'catalogs':[{'site':'HP','url':'https://www.hp.com/kr-ko/shop/'}]},lambda u:'<p>홈</p>')
   self.assertEqual(rows[0]['status'],'no_parseable_products')

@@ -234,12 +234,14 @@ def health_signature(report):
 def status_summary(report):
  rows=report.get('coverage',[])
  good=[r['site'] for r in rows if r['status']=='collected']
- pending=[r for r in rows if r['status']!='collected']
+ indirect=[r['site'] for r in rows if r['status']=='via_comparison']
+ pending=[r for r in rows if r['status'] not in ('collected','via_comparison')]
  stamp=datetime.fromisoformat(report['observed_at']).astimezone(timezone(timedelta(hours=9))).strftime('%m/%d %H:%M')
  lines=['노트북 감시 현황 · '+stamp+' 한국시간']
  if rows:
-  lines+=['가격 수집 '+str(len(good))+'/'+str(len(rows))+'곳'+(' · 일부 미완료' if pending else ''),
+  lines+=['가격 수집 '+str(len(good)+len(indirect))+'/'+str(len(rows))+'곳'+(' · 일부 미완료' if pending else ''),
           '수집 확인: '+', '.join(good)]
+  if indirect:lines+=['다나와·에누리 판매처 가격으로 확인: '+', '.join(indirect)]
   if pending:
    lines+=['미완료 (아래 판매처의 할인은 놓칠 수 있습니다):']
    lines+=['• '+r['site']+': '+coverage_reason(r) for r in pending]
@@ -401,10 +403,10 @@ def main():
    if any(c not in state['sent'].get(key,[]) for c in enabled_channels()):deliver(state,report,key,message)
  if not a.dry_run:
   deliver(state,report,'verification:'+DELIVERY_VERSION,'노트북 감시 개선 검증 알림\n공개 쿠폰 문구 변경 감지·가격 하락·재입고·전송 상태 검증을 적용했습니다.\n이 메시지는 연결 테스트이며 할인 확정 알림이 아닙니다.')
- api_sites={x['site'] for x in config.get('catalogs',[]) if x.get('adapter')=='elevenst_api'}
+ api_sites={x['site'] for x in config.get('catalogs',[]) if x.get('adapter') in ('elevenst_api','via_comparison')}
  # API replaces the same site's disallowed HTML route; retain config for audit.
  sources=[x for x in config['sources'] if x['site'] not in api_sites]
- report['superseded_sources']=[{'source':x['id'],'reason':'공식 API 수집 경로로 통합'} for x in config['sources'] if x['site'] in api_sites]
+ report['superseded_sources']=[{'source':x['id'],'reason':'직접 수집 불가(사이트 정책) · 공식 API 또는 가격비교 판매처 경로로 대체'} for x in config['sources'] if x['site'] in api_sites]
  for discovery in config.get('discovery',[]):
   try:
    doc=Document();doc.feed(fetch(discovery['url']))

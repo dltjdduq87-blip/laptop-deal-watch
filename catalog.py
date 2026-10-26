@@ -174,6 +174,10 @@ def scan(config,fetch):
     def collect(shop):
         row={'site':shop['site'],'url':shop['url'],'status':'pending','products':0,'coupon_verified':False,
              'personal_checkout_verified':False,'observed_at':datetime.now(timezone.utc).isoformat()}
+        if shop.get('adapter')=='via_comparison':
+            # Site robots disallow direct collection; prices arrive as seller rows on comparison sites.
+            row.update(status='via_comparison',next_action=None,note=shop.get('note'))
+            return row,[]
         try:
             if shop.get('adapter')=='elevenst_api':
                 from elevenst import collect as collect_api
