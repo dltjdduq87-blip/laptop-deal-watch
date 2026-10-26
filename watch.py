@@ -454,7 +454,7 @@ def main():
  report['coverage_complete']=bool(coverage) and all(row['status']=='collected' for row in coverage)
  report['shop_summary']=shop_summary(offer_obs,coverage)
  for row in coverage:
-  if row['status']!='collected':report['errors'].append({'source':row['site']+' 목록','code':row.get('code','NO_PARSEABLE_PRODUCTS')})
+  if row['status'] not in ('collected','via_comparison'):report['errors'].append({'source':row['site']+' 목록','code':row.get('code','NO_PARSEABLE_PRODUCTS')})
  if not a.dry_run:notify_status(state,report,now,config)
  # A bounded state file is the checkpoint. Daily event keys older than seven days are discarded.
  cutoff=(now-timedelta(days=7)).date().isoformat()
