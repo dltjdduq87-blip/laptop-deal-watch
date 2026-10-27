@@ -68,6 +68,23 @@ def assess(p, offers=(), policy=None):
             'as_checks': info.get('checks') or (None if b in DOMESTIC else FOREIGN_CHECKS)}
 
 
+KOREA_SKU = re.compile(r'\b\w{6,}KR\b', re.I)  # 레노버 등 국내 출시 모델 코드는 KR로 끝남 (예: 83E2002GKR)
+
+
+def genuine_confirmed(p, a=None):
+    """국내 정품 신호: 정품/공식 판매처 표기 또는 국내 출시 모델 코드(...KR)."""
+    a = a or assess(p)
+    text = ' '.join(str(p.get(k) or '') for k in ('model_key', 'name', 'model', 'title'))
+    return a['as_status'] == '정품 표기 확인' or bool(KOREA_SKU.search(text))
+
+
+def brand_ok(p, brands=None, require_genuine=()):
+    b = brand(p)
+    if brands is not None and b not in brands:
+        return False
+    return b not in require_genuine or genuine_confirmed(p)
+
+
 def allowed(a):
     return a['as_status'] != '병행수입 의심'
 

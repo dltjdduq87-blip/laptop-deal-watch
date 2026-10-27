@@ -51,10 +51,16 @@ def prices_krw(title):
 DEFAULT_BRANDS = ('삼성', 'LG', '애플', 'ASUS', 'HP', 'DELL', 'MSI', '에이서', '기가바이트', '레이저', '마이크로소프트')
 
 
-def is_laptop(title, brands=DEFAULT_BRANDS):
+def is_laptop(title, brands=DEFAULT_BRANDS, require_genuine=()):
     """노트북 본체 글이면서 제목에 허용된 메이저 제조사 브랜드가 반드시 있어야 한다."""
     import as_service
-    return bool(LAPTOP.search(title)) and not ACCESSORY.search(title) and as_service.brand({'name': title}) in brands
+    if not LAPTOP.search(title) or ACCESSORY.search(title):
+        return False
+    p = {'name': title}
+    if as_service.brand(p) in require_genuine:
+        # 정품 확인 필수 브랜드: 제목에 정품/공식 표기나 국내 모델 코드(...KR)가 있고 병행·직구 표기가 없어야 함
+        return as_service.brand(p) in brands and not UNOFFICIAL.search(title) and (bool(OFFICIAL.search(title)) or as_service.genuine_confirmed(p))
+    return as_service.brand(p) in brands
 
 
 def analyze(item, budget=(1500000, 3000000), policy=None):
@@ -97,7 +103,7 @@ def message(d):
     return '\n'.join(lines)
 
 
-def new_laptop_deals(items, seen, budget=(1500000, 3000000), policy=None, brands=DEFAULT_BRANDS):
+def new_laptop_deals(items, seen, budget=(1500000, 3000000), policy=None, brands=DEFAULT_BRANDS, require_genuine=()):
     """Unseen laptop posts, best condition match first. Updates `seen` (list of ids, newest kept)."""
     out = []
     known = set(seen)
@@ -106,7 +112,7 @@ def new_laptop_deals(items, seen, budget=(1500000, 3000000), policy=None, brands
             continue
         known.add(it['id'])
         seen.append(it['id'])
-        if is_laptop(it['title'], brands):
+        if is_laptop(it['title'], brands, require_genuine):
             out.append(analyze(it, budget, policy))
     del seen[:-800]
     return sorted(out, key=lambda d: -d['level'])

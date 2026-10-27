@@ -38,10 +38,19 @@ class HotdealTest(unittest.TestCase):
 
     def test_major_brands_only(self):
         for title in ['[11번가] 한성컴퓨터 TFG5076XG 32GB', '[쿠팡] 15.6인치 RTX4050 게이밍 32GB (1,190,000원)',
-                      '[G마켓] 레드미북 프로 16', '[네이버] 레노버 리전 5 노트북', '[네이버] 게이밍 노트북 특가']:
+                      '[G마켓] 레드미북 프로 16', '[네이버] 게이밍 노트북 특가']:
             self.assertFalse(hotdeal.is_laptop(title), title)
         for title in ['[네이버] LG그램 프로 16', '[쿠팡] 삼성 갤럭시북5 프로', '[G마켓] MSI 크리에이터 M14', '[11번가] HP 오멘 16']:
             self.assertTrue(hotdeal.is_laptop(title), title)
+
+    def test_lenovo_needs_genuine(self):
+        b = hotdeal.DEFAULT_BRANDS + ('레노버',)
+        g = ('레노버',)
+        self.assertFalse(hotdeal.is_laptop('[네이버] 레노버 리전 5 노트북', b, g))
+        self.assertTrue(hotdeal.is_laptop('[네이버] 레노버 리전 5 국내정품 노트북', b, g))
+        self.assertTrue(hotdeal.is_laptop('[11번가] 레노버 요가 프로 7i 83E2002GKR', b, g))
+        self.assertFalse(hotdeal.is_laptop('[G마켓] 레노버 리전 5 정품 병행수입', b, g))
+        self.assertFalse(hotdeal.is_laptop('[G마켓] 레노버 리전 5', hotdeal.DEFAULT_BRANDS))
 
     def test_message(self):
         d = hotdeal.new_laptop_deals(hotdeal.parse_rss(RSS, '뽐뿌'), [])[0]
