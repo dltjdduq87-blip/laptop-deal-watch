@@ -59,7 +59,7 @@ def assess(p, offers=(), policy=None):
         status = '병행수입 의심'  # the product itself is described as parallel/refurbished
     elif b in DOMESTIC:
         status = '국내 제조사'
-    elif any(GENUINE.search(t) and not PARALLEL.search(t) for t in texts):
+    elif any(GENUINE.search(t) and not PARALLEL.search(t) for t in texts) or any(o.get('target_shop') == b for o in rows):
         status = '정품 표기 확인'
     else:
         status = '정품 미확인'
@@ -73,7 +73,7 @@ KOREA_SKU = re.compile(r'\b\w{6,}KR\b', re.I)  # 레노버 등 국내 출시 모
 
 def genuine_confirmed(p, a=None):
     """국내 정품 신호: 정품/공식 판매처 표기 또는 국내 출시 모델 코드(...KR)."""
-    a = a or assess(p)
+    a = a or ({'as_status': p['as_status']} if p.get('as_status') else assess(p))
     text = ' '.join(str(p.get(k) or '') for k in ('model_key', 'name', 'model', 'title'))
     return a['as_status'] == '정품 표기 확인' or bool(KOREA_SKU.search(text))
 

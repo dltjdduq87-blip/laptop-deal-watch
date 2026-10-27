@@ -261,6 +261,9 @@ def status_summary(report):
    lines+=['['+band+'] TOP '+str(len(band_rows))+':']
    lines+=['  '+str(p['band_rank'])+'. ['+p['ai_game_tier']+(('·'+__import__('as_service').tag(p)) if p.get('as_status') else '')+'] '+won(p['effective_price_krw'])+' '+p['model_key'][:38]+' ('+str(p['weight_kg'])+'kg)' for p in band_rows]
   else:lines+=['['+band+'] AI·게임 기준 충족 모델 없음']
+ if report.get('as_pending'):
+  lines+=['정식 A/S 확인 대기 (해외 제조사·국내 정품 신호 없음 → 알림 보류):']
+  lines+=['  ['+p['ai_game_tier']+'] '+won(p['effective_price_krw'])+' '+p['model_key'][:38] for p in report['as_pending'][:5]]
  sweep_row=next((r for r in rows if r.get('method')),None)
  if sweep_row and not report.get('sweep_complete',True):
   lines+=['에누리 전체 목록 1회차 수집 중 ('+str(sweep_row['products'])+'/'+str(sweep_row.get('models_in_filter') or '?')+') · 완료 후 후보 알림 시작']
@@ -390,6 +393,10 @@ def main():
  report['ai_game_min_tier']=config.get('min_ai_game_tier','A')
  report['top_by_band']=rank_by_band(report['review_candidates'],config.get('top_per_band',3),report['ai_game_min_tier'],config.get('allowed_brands'),tuple(config.get('brands_require_genuine') or ()))
  report['top_by_band_flat']=[p for band in report['top_by_band'].values() for p in band]
+ # 해외 제조사 중 정식 A/S(국내 정품) 신호가 없는 후보: 알림 대신 일일 요약의 '확인 대기'로
+ if config.get('brands_require_genuine'):
+  pend=rank_by_band(report['review_candidates'],config.get('top_per_band',3),report['ai_game_min_tier'],config.get('allowed_brands'))
+  report['as_pending']=[p for band in pend.values() for p in band if not as_service.brand_ok(p,None,tuple(config['brands_require_genuine']))]
  report['ignored_links']=config.get('ignored_links',[])
  catalog_state=state.setdefault('catalog_prices',{})
  if not a.dry_run and config.get('catalog_review_notifications'):
