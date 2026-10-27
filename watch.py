@@ -8,7 +8,7 @@ from pathlib import Path
 from urllib import request, error, parse, robotparser
 
 UA='LaptopDealWatch/1.0 (personal public-price monitor)'
-ALLOWED={'www.lge.co.kr','www.samsung.com','www.11st.co.kr','prod.danawa.com','www.enuri.com','enuri.com','price.enuri.com','m.enuri.com','www.gmarket.co.kr','item.gmarket.co.kr','www.auction.co.kr','itempage3.auction.co.kr','www.ssg.com','www.e-himart.co.kr','www.asus.com','www.hp.com','shopping.naver.com','search.shopping.naver.com','www.coupang.com'}
+ALLOWED={'www.lge.co.kr','www.samsung.com','www.11st.co.kr','prod.danawa.com','www.enuri.com','enuri.com','price.enuri.com','m.enuri.com','www.gmarket.co.kr','item.gmarket.co.kr','www.auction.co.kr','itempage3.auction.co.kr','www.ssg.com','www.e-himart.co.kr','www.asus.com','www.hp.com','shopping.naver.com','search.shopping.naver.com','www.coupang.com','www.ppomppu.co.kr','bbs.ruliweb.com'}
 CHANNELS=['KB국민 신용','우리 신용','KB국민 체크','하나 카카오페이 체크','하나 트래블로그 체크','카카오뱅크 체크','토스뱅크 체크','네이버페이','카카오페이']
 ROBOTS={}
 DELIVERY_VERSION='2026-10-24-coupon-watch-v1'
@@ -167,7 +167,7 @@ def ensure_robot_access(url):
 def fetch(url,robots=True):
  validate_url(url)
  if robots:ensure_robot_access(url)
- req=request.Request(url,headers={'User-Agent':UA,'Accept':'text/html,text/plain'})
+ req=request.Request(url,headers={'User-Agent':UA,'Accept':'text/html,text/plain,application/rss+xml,application/xml'})
  try:
   with request.build_opener(SafeRedirect(robots)).open(req,timeout=12) as r:
    validate_url(r.url)
@@ -407,6 +407,21 @@ def main():
   top_lines=[('['+p['ai_game_tier']+'] '+won(p['effective_price_krw'])+' '+p['model_key'][:38]) for p in report['top_by_band_flat'][:5]]
   for key,message in due_alerts(config['events'],now,top_lines):
    if any(c not in state['sent'].get(key,[]) for c in enabled_channels()):deliver(state,report,key,message)
+ if config.get('hotdeal_feeds'):
+  import hotdeal
+  hd=report.setdefault('hotdeal',{'feeds':[],'deals':[]})
+  first=state.get('hotdeal_seen') is None
+  seen=state.setdefault('hotdeal_seen',[])
+  items=[]
+  for f in config['hotdeal_feeds']:
+   try:
+    got=hotdeal.parse_rss(fetch(f['url']),f['name']);items+=got;hd['feeds'].append({'name':f['name'],'status':'collected','items':len(got)})
+   except Exception as e:hd['feeds'].append({'name':f['name'],'status':'error','code':str(e) if isinstance(e,ValueError) else type(e).__name__})
+  band=(config['enuri_sweep'].get('start_price',1500000),config['enuri_sweep'].get('end_price',3000000)) if config.get('enuri_sweep') else (1500000,3000000)
+  deals=hotdeal.new_laptop_deals(items,seen,band,config.get('as_policy'))
+  hd['deals']=[{k:d[k] for k in ('title','link','feed','fit','as_line','price_krw')} for d in deals]
+  if not a.dry_run and not first:
+   for d in deals[:config.get('hotdeal_max_alerts_per_run',5)]:deliver(state,report,'hotdeal:'+d['id'],hotdeal.message(d))
  if not a.dry_run:
   deliver(state,report,'verification:'+DELIVERY_VERSION,'노트북 감시 개선 검증 알림\n공개 쿠폰 문구 변경 감지·가격 하락·재입고·전송 상태 검증을 적용했습니다.\n이 메시지는 연결 테스트이며 할인 확정 알림이 아닙니다.')
  api_sites={x['site'] for x in config.get('catalogs',[]) if x.get('adapter') in ('elevenst_api','via_comparison')}

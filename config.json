@@ -301,5 +301,21 @@
       "note": "애플 공인 서비스 제공업체·애플스토어",
       "checks": "국내 정식 판매처 구매 확인 · 외장 GPU 없음(AI·게임 감시 기준 C등급)"
     }
-  }
+  },
+  "hotdeal_feeds": [
+    {
+      "name": "뽐뿌",
+      "url": "https://www.ppomppu.co.kr/rss.php?id=ppomppu"
+    },
+    {
+      "name": "루리웹 핫딜(유저)",
+      "url": "https://bbs.ruliweb.com/market/board/1020/rss"
+    },
+    {
+      "name": "루리웹 핫딜(업체)",
+      "url": "https://bbs.ruliweb.com/market/board/600004/rss"
+    }
+  ],
+  "hotdeal_max_alerts_per_run": 5,
+  "hotdeal_policy": "노트북 본체 글이면 키워드 한정 없이 모두 알림(조건 근접도·공식 A/S 표시). 액세서리 제외. 첫 실행은 기존 글을 기록만 하고 알림 없음"
 }
