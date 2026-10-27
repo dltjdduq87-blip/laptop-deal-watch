@@ -12,7 +12,13 @@ LAPTOP = re.compile(
     r'프로아트|레기온|리전|legion|씽크패드|thinkpad|씽크북|아이디어패드|ideapad|요가\s*(프로|슬림|\d)|yoga|오멘|omen|빅터스|victus|'
     r'옴니북|omnibook|파빌리온|에일리언웨어|alienware|\bXPS\b|인스피론|inspiron|프레데터|predator|니트로\s*v?\d|스위프트|swift\s*go|'
     r'아스파이어|aspire|크리에이터\s*M?\d|프레스티지\s*\d|스텔스\s*\d|레이더\s*\d|사이보그|cyborg|\bthin\s*15|에어로\s*\d|어로스|aorus|'
-    r'레이저\s*블레이드|razer\s*blade|서피스\s*(랩탑|프로)', re.I)
+    r'레이저\s*블레이드|razer\s*blade|서피스\s*(랩탑|프로)|'
+    # 중소·기타 제조사 (제조사 한정 없음)
+    r'한성\s*(컴퓨터|노트북)?\s*(TFG|보스몬스터|올데이롱|BossMonster)|\bTFG\s*\d|보스몬스터|올데이롱|주연\s*테크|리오나인|'
+    r'베이직북|베이직스|아이뮤즈|디클|포유디지탈|레드빗|이그닉|메이트\s*북|matebook|레드미\s*북|redmibook|샤오미\s*북|'
+    r'매직\s*북|magicbook|프레임워크\s*\d|framework\s*laptop|클레보|clevo|머큐리|와이즈\s*북|'
+    # 제품명이 낯설어도 사양으로 노트북 판별 (화면 인치 + CPU/GPU/RAM)
+    r'\d{2}(?:\.\d)?\s*(?:인치|형|\")[^\]]{0,60}(?:RTX|라이젠|ryzen|코어\s*(?:i\d|울트라)|core\s*(?:i\d|ultra)|\d{2}\s*GB)', re.I)
 ACCESSORY = re.compile(
     r'파우치|가방|백팩|거치대|스탠드|쿨러|쿨링|키보드|마우스|어댑터|충전기|보호\s*필름|필름|스킨|케이스|허브|도킹|독\b|모니터암|램\s*단품|'
     r'SSD\s*단품|메모리\s*단품|스티커|커버|리퍼\s*부품|교체용', re.I)

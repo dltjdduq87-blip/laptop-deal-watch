@@ -20,6 +20,14 @@ BRAND_ALIASES = [
     ('기가바이트', r'GIGABYTE|기가바이트|AORUS|어로스|AERO'),
     ('레이저', r'RAZER|레이저|\bBLADE\b'),
     ('애플', r'APPLE|애플|MACBOOK|맥북'),
+    ('마이크로소프트', r'서피스|SURFACE|마이크로소프트'),
+    ('한성컴퓨터', r'한성|TFG|보스몬스터|BOSSMONSTER|올데이롱'),
+    ('주연테크', r'주연\s*테크|리오나인'),
+    ('화웨이', r'화웨이|HUAWEI|메이트\s*북|MATEBOOK'),
+    ('샤오미', r'샤오미|XIAOMI|레드미\s*북|REDMIBOOK'),
+    ('아너', r'아너|HONOR|매직\s*북|MAGICBOOK'),
+    ('베이직스', r'베이직스|베이직북|BASICS'),
+    ('중소 제조사', r'아이뮤즈|디클|포유디지탈|레드빗|이그닉|와이즈\s*북|머큐리|클레보|CLEVO|프레임워크|FRAMEWORK'),
 ]
 PARALLEL = re.compile(r'병행\s*수입|병행|해외\s*구매|해외\s*직구|직구|해외판|글로벌\s*판|수입\s*대행|구매\s*대행|해외\s*배송|US\s*버전|미국\s*판', re.I)
 GENUINE = re.compile(r'국내\s*정품|정품|정식\s*(수입|유통)|공식\s*(인증|대리|판매|스토어|몰)', re.I)

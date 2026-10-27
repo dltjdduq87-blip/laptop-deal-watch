@@ -36,6 +36,14 @@ class HotdealTest(unittest.TestCase):
         self.assertFalse(hotdeal.is_laptop('[스팀] 프로그램 할인'))
         self.assertTrue(hotdeal.is_laptop('[네이버] LG그램 프로 17Z90TR'))
 
+    def test_all_manufacturers(self):
+        for title in ['[11번가] 한성컴퓨터 TFG5076XG 32GB', '[쿠팡] 15.6인치 RTX4050 게이밍 32GB (1,190,000원)',
+                      '[G마켓] 레드미북 프로 16', '[네이버] 주연테크 리오나인 노트북']:
+            self.assertTrue(hotdeal.is_laptop(title), title)
+        d = hotdeal.analyze({'feed': 'x', 'id': '1', 'title': '[쿠팡] 15.6인치 RTX4050 32GB', 'link': 'l'})
+        self.assertEqual(d['brand'], '미확인')
+        self.assertIn('확인 필요', d['as_line'])
+
     def test_message(self):
         d = hotdeal.new_laptop_deals(hotdeal.parse_rss(RSS, '뽐뿌'), [])[0]
         m = hotdeal.message(d)
