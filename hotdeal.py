@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 from email.utils import parsedate_to_datetime
 
 LAPTOP = re.compile(
-    r'노트북|랩탑|laptop|갤럭시\s*북|galaxy\s*book|그램|\bgram\b|맥북|macbook|\bTUF\b|\bROG\b|젠북|zenbook|비보북|vivobook|'
+    r'노트북|랩탑|laptop|갤럭시\s*북|galaxy\s*book|(?<![가-힣])그램|\bgram\b|맥북|macbook|\bTUF\b|\bROG\b|젠북|zenbook|비보북|vivobook|'
     r'프로아트|레기온|리전|legion|씽크패드|thinkpad|씽크북|아이디어패드|ideapad|요가\s*(프로|슬림|\d)|yoga|오멘|omen|빅터스|victus|'
     r'옴니북|omnibook|파빌리온|에일리언웨어|alienware|\bXPS\b|인스피론|inspiron|프레데터|predator|니트로\s*v?\d|스위프트|swift\s*go|'
     r'아스파이어|aspire|크리에이터\s*M?\d|프레스티지\s*\d|스텔스\s*\d|레이더\s*\d|사이보그|cyborg|\bthin\s*15|에어로\s*\d|어로스|aorus|'

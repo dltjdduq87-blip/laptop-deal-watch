@@ -31,6 +31,11 @@ class HotdealTest(unittest.TestCase):
         self.assertIn('국내 A/S', book['as_line'])
         self.assertEqual(hotdeal.new_laptop_deals(items, seen), [])
 
+    def test_no_false_gram(self):
+        self.assertFalse(hotdeal.is_laptop('[인스탁스샵] 인스타그램 팔로우 이벤트'))
+        self.assertFalse(hotdeal.is_laptop('[스팀] 프로그램 할인'))
+        self.assertTrue(hotdeal.is_laptop('[네이버] LG그램 프로 17Z90TR'))
+
     def test_message(self):
         d = hotdeal.new_laptop_deals(hotdeal.parse_rss(RSS, '뽐뿌'), [])[0]
         m = hotdeal.message(d)

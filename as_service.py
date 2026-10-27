@@ -10,7 +10,7 @@ import re
 DOMESTIC = {'삼성', 'LG'}
 BRAND_ALIASES = [
     ('삼성', r'삼성|SAMSUNG|갤럭시북|GALAXY\s*BOOK|NT\d{3}'),
-    ('LG', r'\bLG\b|LG전자|그램|GRAM|\d{2}Z[D]?\d{2}'),
+    ('LG', r'\bLG\b|LG전자|(?<![가-힣])그램|GRAM|\d{2}Z[D]?\d{2}'),
     ('ASUS', r'ASUS|에이수스|아수스|\bROG\b|\bTUF\b|ZENBOOK|VIVOBOOK|PROART'),
     ('레노버', r'레노버|LENOVO|LEGION|리전|THINKPAD|씽크패드|IDEAPAD|YOGA|요가'),
     ('HP', r'\bHP\b|OMEN|오멘|VICTUS|빅터스|OMNIBOOK|옴니북|ENVY|ELITEBOOK'),
