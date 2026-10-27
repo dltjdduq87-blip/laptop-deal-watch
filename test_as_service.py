@@ -20,6 +20,7 @@ class AsServiceTest(unittest.TestCase):
         self.assertEqual(as_service.assess({'name': 'ASUS TUF A14 병행수입'})['as_status'], '병행수입 의심')
         self.assertEqual(as_service.assess(asus, [{'seller_name': 'x', 'is_overseas': True}])['as_status'], '병행수입 의심')
         self.assertIsNone(as_service.assess({'name': '삼성 갤럭시북'})['as_checks'])
+        self.assertIn('영수증', as_service.assess({'name': '삼성 갤럭시북'}, policy={'삼성': {'checks': '영수증 보관'}})['as_checks'])
         self.assertTrue(as_service.assess(asus)['as_checks'])
 
     def test_policy_notes_in_message(self):

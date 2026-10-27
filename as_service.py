@@ -61,7 +61,7 @@ def assess(p, offers=(), policy=None):
         status = '정품 미확인'
     return {'brand': b, 'domestic_brand': b in DOMESTIC, 'as_status': status,
             'as_note': info.get('note'), 'as_warranty': info.get('warranty'),
-            'as_checks': None if b in DOMESTIC else (info.get('checks') or FOREIGN_CHECKS)}
+            'as_checks': info.get('checks') or (None if b in DOMESTIC else FOREIGN_CHECKS)}
 
 
 def allowed(a):

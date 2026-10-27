@@ -5,16 +5,18 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['watch.py', 'config.json', 'core.py', 'test_watch.py', 'catalog.py', 'elevenst.py', 'test_catalog.py', 'offers.py', 'test_offers.py', 'sweep.py', 'test_sweep.py', 'ai_game.py', 'events.py', 'test_ai_events.py', 'as_service.py', 'test_as_service.py', 'requirements.txt', '.github/workflows/watch.yml']
+    paths: ['watch.py', 'config.json', 'core.py', 'test_watch.py', 'catalog.py', 'elevenst.py', 'test_catalog.py', 'offers.py', 'test_offers.py', 'sweep.py', 'test_sweep.py', 'ai_game.py', 'events.py', 'test_ai_events.py', 'as_service.py', 'test_as_service.py', 'loop_watch.sh', 'requirements.txt', '.github/workflows/watch.yml']
 permissions:
   contents: write
+  actions: write
 concurrency:
   group: laptop-public-price-watch
-  cancel-in-progress: false
+  # 코드 push 시에만 기존 반복 실행을 교체; 예약·자기예약 실행은 대기열로
+  cancel-in-progress: ${{ github.event_name == 'push' }}
 jobs:
   monitor:
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 355
     steps:
       - uses: actions/checkout@v4
         with:
@@ -42,32 +44,9 @@ jobs:
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-        run: python3 watch.py
-      - name: Save checkpoint and public audit report
-        if: always() && steps.collect.outcome != 'skipped'
-        shell: bash
-        run: |
-          test -f state.json
-          test -f report.json
-          cp state.json "$RUNNER_TEMP/watch-state.json"
-          cp report.json "$RUNNER_TEMP/watch-report.json"
-          rm -f state.json report.json
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          if git ls-remote --exit-code --heads origin watch-state > /dev/null; then
-            git fetch --depth=1 origin watch-state
-            git switch -C watch-state FETCH_HEAD
-          else
-            git switch --orphan watch-state
-          fi
-          cp "$RUNNER_TEMP/watch-state.json" state.json
-          cp "$RUNNER_TEMP/watch-report.json" report.json
-          git add state.json report.json
-          if ! git diff --cached --quiet; then
-            git commit -m 'Update public price observations and delivery checkpoint'
-            git push origin HEAD:watch-state
-          fi
-      - name: Mark total collection outage as failure
+          GITHUB_TOKEN: ${{ github.token }}
+          LOOP_MINUTES: '340'
+        run: bash loop_watch.sh
+      - name: Mark loop with every collection failed
         if: steps.collect.outcome == 'failure'
         run: exit 1
-
