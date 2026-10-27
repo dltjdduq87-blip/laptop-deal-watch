@@ -15,6 +15,9 @@ class AiGameTest(unittest.TestCase):
         self.assertEqual(ai_game.tier({'gpu': '외장그래픽 RTX4050'}), 'A')
         self.assertEqual(ai_game.tier({'gpu': '내장그래픽 Arc 140V', 'cpu': '코어 울트라7 258V 47TOPS'}), 'B')
         self.assertEqual(ai_game.tier({'gpu': '내장그래픽 Iris Xe', 'cpu': 'i5-1340P'}), 'C')
+        self.assertEqual(ai_game.tier({'gpu': '내장그래픽 Arc B390 12코어', 'cpu': '388H 50TOPS'}), 'A')
+        self.assertEqual(ai_game.tier({'gpu': '내장그래픽 Radeon 8060S'}), 'A')
+        self.assertIn('B390', ai_game.describe({'gpu': 'Arc B390'}))
         self.assertIn('RTX5060 8GB', ai_game.describe({'gpu': 'RTX5060 VRAM: 8GB'}))
 
     def test_band_ranking_prefers_gpu_tier_then_price_and_excludes_weak(self):
