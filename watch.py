@@ -288,10 +288,27 @@ def estimate_line(p):
  line='보유 카드 할인 표시 없음 → 최저 판매처 '+e['seller']+' '+won(e['estimated_krw'])
  return line+(' (배송비 미확인)' if not e['shipping_known'] else ' (배송비 포함)')+'\n'
 
+TOP_KEY_VERSION=2
 BANDS=('150~190만원','190~230만원','230~300만원')
 
 def model_key(p):
  return re.sub(r'\s+',' ',str(p.get('model_key') or p.get('model') or p['name'].split(' / ')[0])).strip().upper()
+
+OS_RAM=re.compile(r'\b(WIN\s?1[01]\w*|W1[01]\w*|FREE\s?DOS|DOS|OS\s?미포함|\d+\s?GB\s?램|램\s?\d+\s?GB)\b',re.I)
+
+def perf_key(p):
+ """Same-performance group: same maker + CPU + GPU + RAM (OS·SSD·color variants merge).
+ Without CPU text, falls back to the model name minus OS/RAM tags."""
+ name=model_key(p);brand=name.split(' ')[0]
+ cpu=re.sub(r'\([\d.]+\s*G?Hz\)','',str(p.get('cpu') or '')).strip()
+ if cpu:
+  gpu=re.sub(r'\s+',' ',str(p.get('gpu') or '')).strip()
+  return re.sub(r'\s+',' ',' | '.join([brand,cpu,gpu,str(p.get('ram_gb') or '')])).upper()
+ return re.sub(r'\s+',' ',OS_RAM.sub(' ',name)).strip().upper()
+
+def drop_lines(before,now):
+ diff=before-now
+ return '이전가 '+won(before)+' → 현재가 '+won(now)+'\n▼ '+won(diff)+' ('+format(diff/before*100,'.1f')+'% 할인)\n'
 
 def rank_by_band(candidates,n=3,min_tier='A',brands=None,require_genuine=()):
  """Best option per model (lowest effective price), then per band: AI/game tier first, then price."""
@@ -302,9 +319,9 @@ def rank_by_band(candidates,n=3,min_tier='A',brands=None,require_genuine=()):
   if 'as_status' in p and not as_service.allowed(p):continue
   if not as_service.brand_ok(p,brands,require_genuine):continue
   p={**p,'ai_game_tier':ai_game.tier(p),'ai_game_desc':ai_game.describe(p)}
-  k=model_key(p);cur=best.get(k)
+  k=perf_key(p);cur=best.get(k)
   if cur is None or p['effective_price_krw']<cur['effective_price_krw']:
-   best[k]={**p,'model_key':k,'options_seen':(cur or {}).get('options_seen',0)+1}
+   best[k]={**p,'model_key':model_key(p),'perf_key':k,'options_seen':(cur or {}).get('options_seen',0)+1}
   else:cur['options_seen']+=1
  ranked={b:[] for b in BANDS}
  for p in sorted(best.values(),key=lambda p:(ai_game.TIER_ORDER[p['ai_game_tier']],p['effective_price_krw'])):
@@ -386,6 +403,9 @@ def main():
  from offers import attach_estimates, effective_price
  attach_estimates(market_products,offer_obs)
  report['review_candidates']=[{**p,'effective_price_krw':effective_price(p),'price_band':price_band(effective_price(p)),'recommendation':'판매자·재고·국내 AS·결제조건 확인 전 검토 후보'} for p in market_products if review_candidate({**p,'price_krw':effective_price(p)})]
+ import release
+ report['too_old_excluded']=[{'name':p['name'],'basis':release.estimate(p)['basis']} for p in report['review_candidates'] if release.too_old(p,now,config.get('max_release_age_months',36))]
+ report['review_candidates']=[p for p in report['review_candidates'] if not release.too_old(p,now,config.get('max_release_age_months',36))]
  import as_service
  by_src={}
  for o in offer_obs:by_src.setdefault(o.get('list_source_id'),[]).append(o)
@@ -401,15 +421,26 @@ def main():
  catalog_state=state.setdefault('catalog_prices',{})
  if not a.dry_run and config.get('catalog_review_notifications'):
   # Alert only models entering a price band's top list or getting cheaper there; bounded per run.
-  top_state=state.setdefault('top_alerts',{})
+  # v2: alerts are keyed by same-performance group. On upgrade, record the current list silently
+  # so already-known models are not re-sent as "new" just because the key format changed.
+  if state.get('top_key_version')!=TOP_KEY_VERSION and report.get('sweep_complete',True):
+   if state.get('top_alerts'):
+    state['top_alerts']={p['perf_key']:p['effective_price_krw'] for p in report['top_by_band_flat']}
+    state['top_alert_names']={p['perf_key']:p['name'] for p in report['top_by_band_flat']}
+   state['top_key_version']=TOP_KEY_VERSION
+  top_state=state.setdefault('top_alerts',{});names=state.setdefault('top_alert_names',{})
   # Wait for the first full rotation so the top list is not built from a partial sweep.
-  due=[] if not report.get('sweep_complete',True) else [p for p in report['top_by_band_flat'] if top_state.get(p['model_key']) is None or p['effective_price_krw']<top_state[p['model_key']]]
+  due=[] if not report.get('sweep_complete',True) else [p for p in report['top_by_band_flat'] if top_state.get(p['perf_key']) is None or p['effective_price_krw']<top_state[p['perf_key']]]
   for p in sorted(due,key=lambda p:p['effective_price_krw'])[:config.get('max_alerts_per_run',3)]:
-   key='top:'+p['model_key']+':'+str(p['effective_price_krw'])
-   before=top_state.get(p['model_key'])
-   reason='조건 충족 새 후보' if before is None else '예상가 하락 (이전 알림 '+won(before)+')'
+   k=p['perf_key'];key='top:'+k+':'+str(p['effective_price_krw'])
+   before=top_state.get(k)
+   reason='조건 충족 새 후보' if before is None else '같은 성능 가격 하락'
    if (p.get('buyer_estimate') or {}).get('basis')=='보유 결제수단 조건가':reason+=' · 보유 카드 혜택 적용'
-   if deliver(state,report,key,'['+reason+']\n'+candidate_message(report,p)):top_state[p['model_key']]=p['effective_price_krw']
+   head='['+reason+']\n'
+   if before is not None:
+    head+=drop_lines(before,p['effective_price_krw'])
+    if names.get(k) and names[k]!=p['name']:head+='(이전가는 같은 성능 다른 구성: '+names[k]+')\n'
+   if deliver(state,report,key,head+candidate_message(report,p)):top_state[k]=p['effective_price_krw'];names[k]=p['name']
  if not a.dry_run and config.get('events'):
   from events import due_alerts
   top_lines=[('['+p['ai_game_tier']+'] '+won(p['effective_price_krw'])+' '+p['model_key'][:38]) for p in report['top_by_band_flat'][:5]]
@@ -459,7 +490,8 @@ def main():
    pending_price=prev.get('pending_price_event')
    retry_delivery=retry_delivery or pending_price==key
    if not a.dry_run and qualifies_candidate(p) and (reason or retry_delivery):
-    message=((reason or '알림 재전송')+'\n최대혜택 기준 예산 후보 (본인 적용·실결제가 미확인)\n'+p['name']+' / '+p['model']+'\n표시가 '+format(p['price_krw'],',')+'원\n광고 최대혜택 후보가 '+format(candidate_price(p),',')+'원 (카드/간편결제 적용 미확인)\nRAM '+str(p['ram_gb'])+'GB / '+str(p['weight_kg'])+'kg\n쿠폰·카드·배송비 적용 및 실결제 미확인\n'+p['url']+'\n확인(UTC): '+p['observed_at'])
+    old_price=prev.get('last_observation',{}).get('price_krw')
+    message=((reason or '알림 재전송')+'\n'+(drop_lines(old_price,p['price_krw']) if old_price and p['price_krw']<old_price else '')+'최대혜택 기준 예산 후보 (본인 적용·실결제가 미확인)\n'+p['name']+' / '+p['model']+'\n표시가 '+format(p['price_krw'],',')+'원\n광고 최대혜택 후보가 '+format(candidate_price(p),',')+'원 (카드/간편결제 적용 미확인)\nRAM '+str(p['ram_gb'])+'GB / '+str(p['weight_kg'])+'kg\n쿠폰·카드·배송비 적용 및 실결제 미확인\n'+p['url']+'\n확인(UTC): '+p['observed_at'])
     prev['pending_price_event']=key
     if deliver(state,report,key,message):
      prev['last_notified_candidate_price']=candidate_price(p);prev.pop('pending_price_event',None)
@@ -490,6 +522,7 @@ def main():
  state['sent']={k:v for k,v in state['sent'].items() if not k.startswith(('error:','daily:','health:','outage:')) or (k.split(':')[2][:10]>=cutoff if k.startswith('health:') else k.split(':')[1]>=cutoff)}
  # Keep only the latest delivered key per alerted model so the checkpoint stays bounded.
  latest={'top:'+m+':'+str(v) for m,v in state.get('top_alerts',{}).items()}
+ state['top_alert_names']={k:v for k,v in state.get('top_alert_names',{}).items() if k in state.get('top_alerts',{})}
  state['sent']={k:v for k,v in state['sent'].items() if not k.startswith('top:') or k in latest or any(c not in v for c in enabled_channels())}
  report['status']='error' if not report['products'] and not market_products else ('partial' if report['errors'] else 'ok')
  report['notification_status']='dry_run' if a.dry_run else ('failed' if any(d['pending_channels'] for d in report['deliveries']) else 'ok')

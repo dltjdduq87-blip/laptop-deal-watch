@@ -224,7 +224,7 @@ class CandidateAlertTest(unittest.TestCase):
         market = [self.item('노트북 %d' % i, 2000000 + i * 10000) for i in range(5)]
         market.append(self.item('노트북 0', 2100000, 'SSD 1TB'))  # another option of the same model
         market += [self.item('고가 %d' % i, 2400000 + i * 10000) for i in range(3)]
-        state = {'products': {}, 'sent': {}, 'top_alerts': {'노트북 0': 2000000, '노트북 1': 2050000}}
+        state = {'products': {}, 'sent': {}, 'top_alerts': {'노트북 0': 2000000, '노트북 1': 2050000}, 'top_key_version': 2}
         alerts, saved, report = self.run_watch(market, state)
         self.assertEqual(len(alerts), 3)
         joined = '\n'.join(alerts)
@@ -235,6 +235,30 @@ class CandidateAlertTest(unittest.TestCase):
         self.assertEqual([p['model_key'] for p in top], ['노트북 0', '노트북 1', '노트북 2'])
         self.assertEqual(top[0]['options_seen'], 2)
         self.assertEqual(saved['top_alerts']['노트북 1'], 2010000)
+
+    def test_same_performance_variants_merge_and_drop_shows_diff(self):
+        base = dict(site='에누리', ram_gb=32, weight_kg=1.2, url='u', cpu='인텔 코어 울트라7(S3) 356H (4.7GHz)',
+                    gpu='외장그래픽 RTX4060 VRAM: 8GB')
+        market = [dict(base, source_id='a', model_key='LG전자 2026 그램16 16Z90U-AAA', name='LG전자 2026 그램16 16Z90U-AAA / SSD 512GB', price_krw=2200000),
+                  dict(base, source_id='b', model_key='LG전자 2026 그램16 16Z90U-AAA WIN11', name='LG전자 2026 그램16 16Z90U-AAA WIN11 / SSD 1TB', price_krw=2000000)]
+        key = 'LG전자 | 인텔 코어 울트라7(S3) 356H | 외장그래픽 RTX4060 VRAM: 8GB | 32'.upper()
+        state = {'products': {}, 'sent': {}, 'top_key_version': 2, 'top_alerts': {key: 2100000},
+                 'top_alert_names': {key: 'LG전자 2026 그램16 16Z90U-AAA / SSD 512GB'}}
+        alerts, saved, _ = self.run_watch(market, state)
+        self.assertEqual(len(alerts), 1)
+        self.assertIn('이전가 2,100,000원 → 현재가 2,000,000원', alerts[0])
+        self.assertIn('▼ 100,000원 (4.8% 할인)', alerts[0])
+        self.assertIn('같은 성능 다른 구성', alerts[0])
+        self.assertEqual(saved['top_alerts'][key], 2000000)
+
+    def test_key_upgrade_is_silent_and_old_models_excluded(self):
+        old = self.item('LG전자 2023 그램16 16ZD90R-EX7VK', 2100000); old['cpu'] = '인텔 코어i7-13세대 i7-1360P (2.2GHz)'
+        new = self.item('신형 노트북', 2200000)
+        alerts, saved, report = self.run_watch([old, new], {'products': {}, 'sent': {}, 'top_alerts': {'구 키': 1}})
+        self.assertEqual(alerts, [])
+        self.assertEqual(saved['top_key_version'], 2)
+        self.assertNotIn('구 키', saved['top_alerts'])
+        self.assertEqual([p['name'] for p in report['too_old_excluded']], [old['name']])
 
     def test_no_alerts_until_first_full_sweep(self):
         import os, sys, tempfile
