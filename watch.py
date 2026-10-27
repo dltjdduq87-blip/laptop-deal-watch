@@ -290,13 +290,14 @@ BANDS=('150~190만원','190~230만원','230~300만원')
 def model_key(p):
  return re.sub(r'\s+',' ',str(p.get('model_key') or p.get('model') or p['name'].split(' / ')[0])).strip().upper()
 
-def rank_by_band(candidates,n=3,min_tier='A'):
+def rank_by_band(candidates,n=3,min_tier='A',brands=None):
  """Best option per model (lowest effective price), then per band: AI/game tier first, then price."""
  import ai_game, as_service
  best={}
  for p in candidates:
   if not ai_game.allowed(p,min_tier):continue
   if 'as_status' in p and not as_service.allowed(p):continue
+  if brands is not None and as_service.brand(p) not in brands:continue
   p={**p,'ai_game_tier':ai_game.tier(p),'ai_game_desc':ai_game.describe(p)}
   k=model_key(p);cur=best.get(k)
   if cur is None or p['effective_price_krw']<cur['effective_price_krw']:
@@ -387,7 +388,7 @@ def main():
  for o in offer_obs:by_src.setdefault(o.get('list_source_id'),[]).append(o)
  report['review_candidates']=[{**p,**as_service.assess(p,by_src.get(p.get('source_id'),[]),config.get('as_policy'))} for p in report['review_candidates']]
  report['ai_game_min_tier']=config.get('min_ai_game_tier','A')
- report['top_by_band']=rank_by_band(report['review_candidates'],config.get('top_per_band',3),report['ai_game_min_tier'])
+ report['top_by_band']=rank_by_band(report['review_candidates'],config.get('top_per_band',3),report['ai_game_min_tier'],config.get('allowed_brands'))
  report['top_by_band_flat']=[p for band in report['top_by_band'].values() for p in band]
  report['ignored_links']=config.get('ignored_links',[])
  catalog_state=state.setdefault('catalog_prices',{})
@@ -418,7 +419,7 @@ def main():
     got=hotdeal.parse_rss(fetch(f['url']),f['name']);items+=got;hd['feeds'].append({'name':f['name'],'status':'collected','items':len(got)})
    except Exception as e:hd['feeds'].append({'name':f['name'],'status':'error','code':str(e) if isinstance(e,ValueError) else type(e).__name__})
   band=(config['enuri_sweep'].get('start_price',1500000),config['enuri_sweep'].get('end_price',3000000)) if config.get('enuri_sweep') else (1500000,3000000)
-  deals=hotdeal.new_laptop_deals(items,seen,band,config.get('as_policy'))
+  deals=hotdeal.new_laptop_deals(items,seen,band,config.get('as_policy'),tuple(config.get('allowed_brands') or hotdeal.DEFAULT_BRANDS))
   hd['deals']=[{k:d[k] for k in ('title','link','feed','fit','as_line','price_krw')} for d in deals]
   if not a.dry_run and not first:
    for d in deals[:config.get('hotdeal_max_alerts_per_run',5)]:deliver(state,report,'hotdeal:'+d['id'],hotdeal.message(d))
