@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['watch.py', 'config.json', 'core.py', 'test_watch.py', 'catalog.py', 'elevenst.py', 'test_catalog.py', 'offers.py', 'test_offers.py', 'sweep.py', 'test_sweep.py', 'ai_game.py', 'events.py', 'test_ai_events.py', 'requirements.txt', '.github/workflows/watch.yml']
+    paths: ['watch.py', 'config.json', 'core.py', 'test_watch.py', 'catalog.py', 'elevenst.py', 'test_catalog.py', 'offers.py', 'test_offers.py', 'sweep.py', 'test_sweep.py', 'ai_game.py', 'events.py', 'test_ai_events.py', 'as_service.py', 'test_as_service.py', 'requirements.txt', '.github/workflows/watch.yml']
 permissions:
   contents: write
 concurrency:

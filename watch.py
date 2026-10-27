@@ -255,11 +255,11 @@ def status_summary(report):
  for band in BANDS:
   lines.append(band+': '+str(len({model_key(p) for p in candidates if p['price_band']==band}))+'개 모델')
  if report.get('top_by_band') is not None:
-  lines+=['AI·게임 최적 기준: 외장 GPU(RTX 등) 우선 → 같은 등급은 예상가 낮은 순']
+  lines+=['AI·게임 최적 기준: 외장 GPU(RTX 등) 우선 → 같은 등급은 예상가 낮은 순 · 병행수입·해외구매 의심 상품 제외','A/S 표시: 국내AS(삼성·LG) / 정품표기·정품미확인(해외 제조사, 판매처 문구 기준)']
  for band,band_rows in (report.get('top_by_band') or {}).items():
   if band_rows:
    lines+=['['+band+'] TOP '+str(len(band_rows))+':']
-   lines+=['  '+str(p['band_rank'])+'. ['+p['ai_game_tier']+'] '+won(p['effective_price_krw'])+' '+p['model_key'][:38]+' ('+str(p['weight_kg'])+'kg)' for p in band_rows]
+   lines+=['  '+str(p['band_rank'])+'. ['+p['ai_game_tier']+(('·'+__import__('as_service').tag(p)) if p.get('as_status') else '')+'] '+won(p['effective_price_krw'])+' '+p['model_key'][:38]+' ('+str(p['weight_kg'])+'kg)' for p in band_rows]
   else:lines+=['['+band+'] AI·게임 기준 충족 모델 없음']
  sweep_row=next((r for r in rows if r.get('method')),None)
  if sweep_row and not report.get('sweep_complete',True):
@@ -292,10 +292,11 @@ def model_key(p):
 
 def rank_by_band(candidates,n=3,min_tier='A'):
  """Best option per model (lowest effective price), then per band: AI/game tier first, then price."""
- import ai_game
+ import ai_game, as_service
  best={}
  for p in candidates:
   if not ai_game.allowed(p,min_tier):continue
+  if 'as_status' in p and not as_service.allowed(p):continue
   p={**p,'ai_game_tier':ai_game.tier(p),'ai_game_desc':ai_game.describe(p)}
   k=model_key(p);cur=best.get(k)
   if cur is None or p['effective_price_krw']<cur['effective_price_krw']:
@@ -319,6 +320,7 @@ def candidate_message(report,p):
          +'RAM '+str(p['ram_gb'])+'GB / '+str(p['weight_kg'])+'kg\n'
          +('AI·게임 등급: '+p['ai_game_desc']+' (사양 기준, FPS·벤치마크 아님)\n' if p.get('ai_game_desc') else '')
          +spec_line(p)
+         +(__import__('as_service').message_lines(p) if p.get('as_status') else '')
          +offer_lines(report,p)
          +'예상가는 공개 정보 계산값입니다. T멤버십(VIP)·쇼핑몰 쿠폰·카드 실적/한도·재고·국내 AS는 구매 전 앱에서 확인하세요.\n'+p['url'])
 
@@ -380,6 +382,10 @@ def main():
  from offers import attach_estimates, effective_price
  attach_estimates(market_products,offer_obs)
  report['review_candidates']=[{**p,'effective_price_krw':effective_price(p),'price_band':price_band(effective_price(p)),'recommendation':'판매자·재고·국내 AS·결제조건 확인 전 검토 후보'} for p in market_products if review_candidate({**p,'price_krw':effective_price(p)})]
+ import as_service
+ by_src={}
+ for o in offer_obs:by_src.setdefault(o.get('list_source_id'),[]).append(o)
+ report['review_candidates']=[{**p,**as_service.assess(p,by_src.get(p.get('source_id'),[]),config.get('as_policy'))} for p in report['review_candidates']]
  report['ai_game_min_tier']=config.get('min_ai_game_tier','A')
  report['top_by_band']=rank_by_band(report['review_candidates'],config.get('top_per_band',3),report['ai_game_min_tier'])
  report['top_by_band_flat']=[p for band in report['top_by_band'].values() for p in band]
