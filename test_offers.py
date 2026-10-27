@@ -210,7 +210,8 @@ class CandidateAlertTest(unittest.TestCase):
                         patch('catalog.scan', return_value=([], market)), patch('offers.collect_offers', return_value=([], [], [])), \
                         patch('watch.telegram', side_effect=lambda t: sent.append(t) or True), patch('watch.email', return_value=False):
                     watch.main()
-                return [t for t in sent if '노트북 후보 알림' in t], json.loads(Path('state.json').read_text()), \
+                self.sent_all = sent
+                return [t for t in sent if '노트북 후보 알림' in t and '조건 충족 최저가' not in t], json.loads(Path('state.json').read_text()), \
                     json.loads(Path('report.json').read_text())
             finally:
                 os.chdir(previous)
@@ -259,6 +260,17 @@ class CandidateAlertTest(unittest.TestCase):
         self.assertEqual(saved['top_key_version'], 2)
         self.assertNotIn('구 키', saved['top_alerts'])
         self.assertEqual([p['name'] for p in report['too_old_excluded']], [old['name']])
+
+    def test_overall_cheapest_alert_with_drop(self):
+        market = [self.item('A 노트북', 2500000), self.item('B 노트북', 1800000)]
+        state = {'products': {}, 'sent': {}, 'top_key_version': 2, 'top_alerts': {'A 노트북': 2500000, 'B 노트북': 1800000},
+                 'cheapest_alert': {'price': 1900000, 'name': 'B 노트북 / SSD 1TB', 'perf_key': 'B 노트북'}}
+        alerts, saved, report = self.run_watch(market, state)
+        self.assertEqual(saved['cheapest_alert']['price'], 1800000)
+        msg = [t for t in self.sent_all if '조건 충족 최저가 갱신' in t][0]
+        self.assertIn('이전가 1,900,000원 → 현재가 1,800,000원', msg)
+        self.assertIn('▼ 100,000원 (5.3% 할인)', msg)
+        self.assertEqual(report['cheapest_qualifying']['name'], 'B 노트북 / SSD 512GB')
 
     def test_no_alerts_until_first_full_sweep(self):
         import os, sys, tempfile

@@ -289,6 +289,7 @@ def estimate_line(p):
  return line+(' (배송비 미확인)' if not e['shipping_known'] else ' (배송비 포함)')+'\n'
 
 TOP_KEY_VERSION=2
+CONDITION_LINE='조건: RAM 32GB+ · 1.6kg 이하 · AI·게임 A등급+ · 국내 A/S · 출시 3년 미만 · SSD 용량 무관\n'
 BANDS=('150~190만원','190~230만원','230~300만원')
 
 def model_key(p):
@@ -418,6 +419,12 @@ def main():
   pend=rank_by_band(report['review_candidates'],config.get('top_per_band',3),report['ai_game_min_tier'],config.get('allowed_brands'))
   report['as_pending']=[p for band in pend.values() for p in band if not as_service.brand_ok(p,None,tuple(config['brands_require_genuine']))]
  report['ignored_links']=config.get('ignored_links',[])
+ # Overall lowest price meeting every condition (SSD capacity ignored: options are merged per performance group).
+ allp=rank_by_band(report['review_candidates'],10**6,report['ai_game_min_tier'],config.get('allowed_brands'),tuple(config.get('brands_require_genuine') or ()))
+ pool=[p for band in allp.values() for p in band]
+ cheapest=min(pool,key=lambda p:p['effective_price_krw']) if pool else None
+ report['cheapest_qualifying']=cheapest
+ top_sent=set()
  catalog_state=state.setdefault('catalog_prices',{})
  if not a.dry_run and config.get('catalog_review_notifications'):
   # Alert only models entering a price band's top list or getting cheaper there; bounded per run.
@@ -436,11 +443,27 @@ def main():
    before=top_state.get(k)
    reason='조건 충족 새 후보' if before is None else '같은 성능 가격 하락'
    if (p.get('buyer_estimate') or {}).get('basis')=='보유 결제수단 조건가':reason+=' · 보유 카드 혜택 적용'
+   pc=state.get('cheapest_alert')
+   if cheapest and p['perf_key']==cheapest['perf_key'] and (not pc or p['effective_price_krw']<pc['price']):reason+=' · 조건 충족 전체 최저가'
    head='['+reason+']\n'
    if before is not None:
     head+=drop_lines(before,p['effective_price_krw'])
     if names.get(k) and names[k]!=p['name']:head+='(이전가는 같은 성능 다른 구성: '+names[k]+')\n'
-   if deliver(state,report,key,head+candidate_message(report,p)):top_state[k]=p['effective_price_krw'];names[k]=p['name']
+   if deliver(state,report,key,head+candidate_message(report,p)):top_state[k]=p['effective_price_krw'];names[k]=p['name'];top_sent.add((k,p['effective_price_krw']))
+ if not a.dry_run and cheapest and report.get('sweep_complete',True) and config.get('catalog_review_notifications'):
+  prev=state.get('cheapest_alert')
+  if prev and cheapest['effective_price_krw']>=prev['price'] and prev['perf_key'] not in {p['perf_key'] for p in pool}:
+   state['cheapest_alert']={'price':cheapest['effective_price_krw'],'name':cheapest['name'],'perf_key':cheapest['perf_key']}  # 이전 최저가 품절·이탈: 기준 재설정
+  elif (not prev or cheapest['effective_price_krw']<prev['price']) and (cheapest['perf_key'],cheapest['effective_price_krw']) in top_sent:
+   state['cheapest_alert']={'price':cheapest['effective_price_krw'],'name':cheapest['name'],'perf_key':cheapest['perf_key']}  # 방금 후보 알림으로 이미 전송
+  elif not prev or cheapest['effective_price_krw']<prev['price']:
+   head='[조건 충족 최저가 '+('갱신' if prev else '현재')+']\n'+CONDITION_LINE
+   if prev:
+    head+=drop_lines(prev['price'],cheapest['effective_price_krw'])
+    if prev['name']!=cheapest['name']:head+='(이전 최저가: '+prev['name']+')\n'
+   key='cheapest:'+cheapest['perf_key']+':'+str(cheapest['effective_price_krw'])
+   if deliver(state,report,key,head+candidate_message(report,{**cheapest,'band_rank':None})):
+    state['cheapest_alert']={'price':cheapest['effective_price_krw'],'name':cheapest['name'],'perf_key':cheapest['perf_key']}
  if not a.dry_run and config.get('events'):
   from events import due_alerts
   top_lines=[('['+p['ai_game_tier']+'] '+won(p['effective_price_krw'])+' '+p['model_key'][:38]) for p in report['top_by_band_flat'][:5]]
@@ -524,6 +547,8 @@ def main():
  latest={'top:'+m+':'+str(v) for m,v in state.get('top_alerts',{}).items()}
  state['top_alert_names']={k:v for k,v in state.get('top_alert_names',{}).items() if k in state.get('top_alerts',{})}
  state['sent']={k:v for k,v in state['sent'].items() if not k.startswith('top:') or k in latest or any(c not in v for c in enabled_channels())}
+ ch=state.get('cheapest_alert');ck=('cheapest:'+ch['perf_key']+':'+str(ch['price'])) if ch else None
+ state['sent']={k:v for k,v in state['sent'].items() if not k.startswith('cheapest:') or k==ck or any(c not in v for c in enabled_channels())}
  report['status']='error' if not report['products'] and not market_products else ('partial' if report['errors'] else 'ok')
  report['notification_status']='dry_run' if a.dry_run else ('failed' if any(d['pending_channels'] for d in report['deliveries']) else 'ok')
  write_json('report.json',report)
