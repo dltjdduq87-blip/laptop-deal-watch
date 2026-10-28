@@ -20,6 +20,44 @@ OFFICIAL = re.compile(r'공식|브랜드\s*스토어|공식\s*인증|인증점|�
 UNOFFICIAL = re.compile(r'병행|해외\s*직구|직구|해외판|글로벌\s*버전|구매\s*대행|리퍼|중고|미개봉\s*중고|전시', re.I)
 GPU_STRONG = re.compile(r'RTX\s*-?\s*\d{4}|Radeon\s*RX|Arc\s*B390|8060S|8050S', re.I)
 RAM_32 = re.compile(r'(32|48|64|96|128)\s*(GB|G)\b', re.I)
+# 쿠팡 반품마켓 등 반품 상품: 같은 성능 새 제품보다 싸게 나오는 경우가 많아 따로 표시·우선 알림
+RETURN = re.compile(r'반품\s*마켓|반품\s*상품|반품\s*\(?\s*(최상|상급|상|중|S급|A급)|와우\s*반품|\(\s*반품\s*\)|\[\s*반품\s*\]|반품\s*특가|반품\s*노트북|노트북.{0,20}반품', re.I)
+MODEL_CODE = re.compile(r'\b(?=[A-Z0-9-]*\d)(?=[A-Z0-9-]*[A-Z])[A-Z0-9]{2,}(?:-[A-Z0-9]{2,})?\b')
+
+
+def model_codes(text):
+    """제목/모델명에서 제조사 모델 코드 후보(NT940XJG-K72A, 16ZD90U-GX59K, 83E2002GKR 등)."""
+    out = []
+    for m in MODEL_CODE.finditer((text or '').upper()):
+        c = m[0]
+        if len(c.replace('-', '')) >= 7 and not re.fullmatch(r'\d+[A-Z]{0,3}', c.replace('-', '')) and not re.fullmatch(r'(RTX|GTX|RX)\d+', c):
+            out.append(c)
+    return out
+
+
+def build_reference(items):
+    """가격비교 수집 결과 -> {모델코드: (최저가, 이름)}. 정확한 코드와 하이픈 앞 기본 코드 둘 다 등록."""
+    ref = {}
+    for it in items or []:
+        price = it.get('price_krw')
+        if not price:
+            continue
+        for c in model_codes(it.get('model') or it.get('name')):
+            for key in (c, 'BASE:' + c.split('-')[0]):
+                if key not in ref or price < ref[key][0]:
+                    ref[key] = (price, it.get('name') or it.get('model'))
+    return ref
+
+
+def reference_for(title, ref):
+    for c in model_codes(title):
+        if c in ref:
+            return {'price': ref[c][0], 'name': ref[c][1], 'match': '같은 모델'}
+    for c in model_codes(title):
+        k = 'BASE:' + c.split('-')[0]
+        if k in ref:
+            return {'price': ref[k][0], 'name': ref[k][1], 'match': '같은 시리즈(옵션 다를 수 있음)'}
+    return None
 
 
 def parse_rss(xml_text, feed_name):
@@ -63,9 +101,10 @@ def is_laptop(title, brands=DEFAULT_BRANDS, require_genuine=()):
     return as_service.brand(p) in brands
 
 
-def analyze(item, budget=(1500000, 3000000), policy=None):
+def analyze(item, budget=(1500000, 3000000), policy=None, reference=None):
     import as_service
     t = item['title']
+    is_return = bool(RETURN.search(t))
     prices = prices_krw(t)
     price = min(prices) if prices else None
     fit = []
@@ -78,7 +117,9 @@ def analyze(item, budget=(1500000, 3000000), policy=None):
         fit.append('예산 내')
     a = as_service.assess({'name': t}, policy=policy)
     official = bool(OFFICIAL.search(t)) and not UNOFFICIAL.search(t)
-    if UNOFFICIAL.search(t):
+    if is_return and not UNOFFICIAL.search(t):
+        as_line = a['brand'] + (' 국내 A/S' if a['domestic_brand'] else '') + ' · 반품 상품 → 제조사 보증 적용 여부·등급·구성품은 상품 페이지 확인 필요'
+    elif UNOFFICIAL.search(t):
         as_line = '병행·리퍼·중고 의심 (공식 A/S 불확실)'
     elif a['domestic_brand']:
         as_line = a['brand'] + ' 국내 A/S' + (' · 공식 판매처 표기' if official else '')
@@ -87,23 +128,37 @@ def analyze(item, budget=(1500000, 3000000), policy=None):
     else:
         as_line = a['brand'] + ' · 공식 판매처 표기 없음 → 정품·보증 확인 필요'
     level = len(fit) + (1 if (official or a['domestic_brand']) and not UNOFFICIAL.search(t) else 0)
+    ref = reference_for(t, reference) if reference else None
+    if is_return:
+        level += 2
+    if ref and price and price < ref['price']:
+        level += 1
     return {**item, 'price_krw': price, 'fit': fit, 'level': level, 'brand': a['brand'],
-            'official_seller': official, 'as_line': as_line, 'as_warranty': a.get('as_warranty')}
+            'official_seller': official, 'as_line': as_line, 'as_warranty': a.get('as_warranty'),
+            'is_return': is_return, 'reference': ref}
 
 
 def message(d):
     shop = re.match(r'\s*\[([^\]]+)\]', d['title'])
-    lines = ['[핫딜 노트북] ' + ('조건 근접: ' + ', '.join(d['fit']) if d['fit'] else '조건 정보 부족(제목 기준)'),
+    head = '[반품 노트북] ' if d.get('is_return') else '[핫딜 노트북] '
+    lines = [head + ('조건 근접: ' + ', '.join(d['fit']) if d['fit'] else '조건 정보 부족(제목 기준)'),
              d['title'],
-             '판매처: ' + (shop[1] if shop else '제목 미표기') + ' · 출처: ' + d['feed'],
-             '공식 A/S: ' + d['as_line']]
+             '판매처: ' + (shop[1] if shop else '제목 미표기') + ' · 출처: ' + d['feed']]
+    ref = d.get('reference')
+    if ref:
+        line = '새 제품 최저가(' + ref['match'] + '): ' + format(ref['price'], ',') + '원 · ' + str(ref['name'])[:40]
+        if d.get('price_krw') and d['price_krw'] < ref['price']:
+            diff = ref['price'] - d['price_krw']
+            line += '\n  → 이 글 ' + format(d['price_krw'], ',') + '원, ' + format(diff, ',') + '원(' + str(round(diff * 100 / ref['price'], 1)) + '%) 낮음'
+        lines.append(line)
+    lines.append('공식 A/S: ' + d['as_line'])
     if d.get('as_warranty'):
         lines.append('  보증: ' + d['as_warranty'])
     lines += ['커뮤니티 제목 기준이며 가격·쿠폰·재고·사양은 미확인입니다.', d['link']]
     return '\n'.join(lines)
 
 
-def new_laptop_deals(items, seen, budget=(1500000, 3000000), policy=None, brands=DEFAULT_BRANDS, require_genuine=()):
+def new_laptop_deals(items, seen, budget=(1500000, 3000000), policy=None, brands=DEFAULT_BRANDS, require_genuine=(), reference=None):
     """Unseen laptop posts, best condition match first. Updates `seen` (list of ids, newest kept)."""
     out = []
     known = set(seen)
@@ -113,6 +168,6 @@ def new_laptop_deals(items, seen, budget=(1500000, 3000000), policy=None, brands
         known.add(it['id'])
         seen.append(it['id'])
         if is_laptop(it['title'], brands, require_genuine):
-            out.append(analyze(it, budget, policy))
+            out.append(analyze(it, budget, policy, reference))
     del seen[:-800]
     return sorted(out, key=lambda d: -d['level'])

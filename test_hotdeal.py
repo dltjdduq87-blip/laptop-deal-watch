@@ -59,5 +59,30 @@ class HotdealTest(unittest.TestCase):
         self.assertIn('판매처: 네이버', m)
 
 
+    def test_return_deal_with_reference(self):
+        ref = hotdeal.build_reference([
+            {'model': 'LG전자 2026 그램 프로16 16ZD90U-GX59K WIN11', 'name': 'LG 그램 프로16 16ZD90U-GX59K', 'price_krw': 2612370},
+            {'model': '삼성전자 갤럭시북6 프로 NT940XJG-K71A', 'name': '갤럭시북6 프로 NT940XJG-K71A', 'price_krw': 2900000}])
+        items = hotdeal.parse_rss('''<rss><channel>
+<item><title>[쿠팡] 반품마켓 LG 그램 프로16 16ZD90U-GX59K 최상 (1,990,000원)</title><link>https://a/1</link></item>
+<item><title>[네이버] 갤럭시북6 프로 NT940XJG-K72A (3,040,000원)</title><link>https://a/2</link></item>
+</channel></rss>''', '뽐뿌')
+        deals = hotdeal.new_laptop_deals(items, [], reference=ref)
+        self.assertTrue(deals[0]['is_return'])
+        self.assertEqual(deals[0]['reference']['match'], '같은 모델')
+        m = hotdeal.message(deals[0])
+        self.assertTrue(m.startswith('[반품 노트북]'))
+        self.assertIn('622,370원(23.8%) 낮음', m)
+        self.assertIn('반품 상품', m)
+        book = deals[1]
+        self.assertFalse(book['is_return'])
+        self.assertEqual(book['reference']['match'], '같은 시리즈(옵션 다를 수 있음)')
+        self.assertNotIn('낮음', hotdeal.message(book))
+
+    def test_model_codes_ignore_gpu_and_sizes(self):
+        self.assertEqual(hotdeal.model_codes('ASUS TUF A14 RTX4060 32GB 1TB'), [])
+        self.assertIn('83E2002GKR', hotdeal.model_codes('레노버 요가 83E2002GKR'))
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -480,8 +480,8 @@ def main():
     got=hotdeal.parse_rss(fetch(f['url']),f['name']);items+=got;hd['feeds'].append({'name':f['name'],'status':'collected','items':len(got)})
    except Exception as e:hd['feeds'].append({'name':f['name'],'status':'error','code':str(e) if isinstance(e,ValueError) else type(e).__name__})
   band=(config['enuri_sweep'].get('start_price',1500000),config['enuri_sweep'].get('end_price',3000000)) if config.get('enuri_sweep') else (1500000,3000000)
-  deals=hotdeal.new_laptop_deals(items,seen,band,config.get('as_policy'),tuple(config.get('allowed_brands') or hotdeal.DEFAULT_BRANDS),tuple(config.get('brands_require_genuine') or ()))
-  hd['deals']=[{k:d[k] for k in ('title','link','feed','fit','as_line','price_krw')} for d in deals]
+  deals=hotdeal.new_laptop_deals(items,seen,band,config.get('as_policy'),tuple(config.get('allowed_brands') or hotdeal.DEFAULT_BRANDS),tuple(config.get('brands_require_genuine') or ()),hotdeal.build_reference(list((state.get('enuri_sweep') or {}).get('items',{}).values())))
+  hd['deals']=[{k:d.get(k) for k in ('title','link','feed','fit','as_line','price_krw','is_return','reference')} for d in deals]
   if not a.dry_run and not first:
    for d in deals[:config.get('hotdeal_max_alerts_per_run',5)]:deliver(state,report,'hotdeal:'+d['id'],hotdeal.message(d))
  if not a.dry_run:
