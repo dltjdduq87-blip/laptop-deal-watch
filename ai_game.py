@@ -64,6 +64,14 @@ def tier(p):
     return 'B' if tops is not None and tops >= 40 else 'C'
 
 
+def vram_warning(p):
+    """외장 GPU인데 VRAM 4GB 이하면 로컬 AI용으로 부족 표시 (후보에서 빼지는 않음)."""
+    model, vram = gpu_info(p)
+    if model and vram is not None and vram <= 4:
+        return 'AI용 VRAM 부족(' + str(vram) + 'GB)'
+    return None
+
+
 def describe(p):
     model, vram = gpu_info(p)
     t = tier(p)
@@ -72,6 +80,8 @@ def describe(p):
         bits.append(model + (' ' + str(vram) + 'GB' if vram else ''))
     elif strong_igpu(p):
         bits.append('내장 ' + strong_igpu(p) + ' (RTX4050급 근접 리뷰, CUDA 미지원)')
+    if vram_warning(p):
+        bits.append('⚠ ' + vram_warning(p))
     tops = npu_tops(p)
     if tops is not None:
         bits.append('NPU ' + str(tops) + 'TOPS')

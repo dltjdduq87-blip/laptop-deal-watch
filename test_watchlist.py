@@ -78,6 +78,14 @@ class WatchlistTest(unittest.TestCase):
         msg = watchlist.due(G[:1], P, {}, ('HP',), ('HP',))[0][1]
         self.assertIn('국내 정품·A/S 확인 필요', msg)
 
+    def test_vram_warning(self):
+        p = {'name': 'LG 그램 프로17', 'gpu': '외장그래픽 RTX3050 VRAM: 4GB 45W'}
+        self.assertEqual(ai_game.vram_warning(p), 'AI용 VRAM 부족(4GB)')
+        self.assertEqual(ai_game.tier(p), 'A')
+        self.assertIn('⚠ AI용 VRAM 부족(4GB)', ai_game.describe(p))
+        self.assertIsNone(ai_game.vram_warning({'gpu': '외장그래픽 RTX4050 VRAM: 6GB'}))
+        self.assertIsNone(ai_game.vram_warning({'gpu': '내장그래픽 Arc B390 12코어'}))
+
     def test_b390_inferred_from_cpu(self):
         p = {'name': '갤럭시북6 프로', 'cpu': '인텔 코어 울트라X7(S3) 358H', 'gpu': '내장그래픽 Intel Graphics'}
         self.assertEqual(ai_game.tier(p), 'A')

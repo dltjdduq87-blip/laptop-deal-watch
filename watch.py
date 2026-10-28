@@ -259,7 +259,7 @@ def status_summary(report):
  for band,band_rows in (report.get('top_by_band') or {}).items():
   if band_rows:
    lines+=['['+band+'] TOP '+str(len(band_rows))+':']
-   lines+=['  '+str(p['band_rank'])+'. ['+p['ai_game_tier']+(('·'+__import__('as_service').tag(p)) if p.get('as_status') else '')+'] '+won(p['effective_price_krw'])+' '+p['model_key'][:38]+' ('+str(p['weight_kg'])+'kg)' for p in band_rows]
+   lines+=['  '+str(p['band_rank'])+'. ['+p['ai_game_tier']+(('·'+__import__('as_service').tag(p)) if p.get('as_status') else '')+'] '+won(p['effective_price_krw'])+' '+p['model_key'][:38]+' ('+str(p['weight_kg'])+'kg)'+((' ⚠'+__import__('ai_game').vram_warning(p)) if __import__('ai_game').vram_warning(p) else '') for p in band_rows]
   else:lines+=['['+band+'] AI·게임 기준 충족 모델 없음']
  if report.get('as_pending'):
   lines+=['정식 A/S 확인 대기 (해외 제조사·국내 정품 신호 없음 → 알림 보류):']
@@ -341,10 +341,19 @@ def candidate_message(report,p):
          +estimate_line(p)
          +'RAM '+str(p['ram_gb'])+'GB / '+str(p['weight_kg'])+'kg\n'
          +('AI·게임 등급: '+p['ai_game_desc']+' (사양 기준, FPS·벤치마크 아님)\n' if p.get('ai_game_desc') else '')
+         +vram_alt_line(report,p)
          +spec_line(p)
          +(__import__('as_service').message_lines(p) if p.get('as_status') else '')
          +offer_lines(report,p)
          +'예상가는 공개 정보 계산값입니다. T멤버십(VIP)·쇼핑몰 쿠폰·카드 실적/한도·재고·국내 AS는 구매 전 앱에서 확인하세요.\n'+p['url'])
+
+def vram_alt_line(report,p):
+ """VRAM 4GB 이하 후보 알림에 'VRAM 충분한 조건 충족 최저가'를 같이 보여 비교하게 한다."""
+ import ai_game
+ if not ai_game.vram_warning(p):return ''
+ alt=report.get('cheapest_ai_ok')
+ if not alt:return '  → VRAM 6GB 이상(또는 B390급) 조건 충족 후보 없음\n'
+ return '  → VRAM 6GB 이상/B390급 최저가: '+won(alt['effective_price_krw'])+' '+alt['model_key'][:40]+' (+'+won(max(0,alt['effective_price_krw']-p['effective_price_krw']))+')\n'
 
 def offer_lines(report,p):
  rows=[o for o in report.get('offer_observations',[]) if o.get('list_source_id')==p.get('source_id') and o['price_condition'].startswith('일반 판매가') and not o.get('is_ad') and not o.get('is_overseas')]
@@ -424,6 +433,9 @@ def main():
  pool=[p for band in allp.values() for p in band]
  cheapest=min(pool,key=lambda p:p['effective_price_krw']) if pool else None
  report['cheapest_qualifying']=cheapest
+ import ai_game
+ ai_ok=[p for p in pool if not ai_game.vram_warning(p)]
+ report['cheapest_ai_ok']=min(ai_ok,key=lambda p:p['effective_price_krw']) if ai_ok else None
  top_sent=set()
  catalog_state=state.setdefault('catalog_prices',{})
  if not a.dry_run and config.get('catalog_review_notifications'):
