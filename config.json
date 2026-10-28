@@ -369,5 +369,23 @@
     "레이저",
     "마이크로소프트",
     "레노버"
-  ]
+  ],
+  "watch_groups": [
+    {
+      "id": "omnibook-ultra-14",
+      "label": "HP 옴니북 Ultra 14 (14-kd005x)",
+      "name_pattern": "옴니북\\s*(울트라|Ultra)\\s*14|14-kd00\\d\\d",
+      "min_ram": 32,
+      "note": "그래픽: Intel Graphics 4코어(코어 울트라7 356H) — Arc B390 아님 · 게임·로컬AI 조건(A등급) 미달, 휴대성 관심 모델"
+    },
+    {
+      "id": "panther-lake-4core-light",
+      "label": "옴니북 Ultra 14와 비슷한 성능 (코어 울트라7/9 시리즈3 H · 4코어 그래픽 · 1.4kg 이하)",
+      "cpu_pattern": "울트라[79]\\s*\\(S3\\)\\s*3[5-8]\\dH",
+      "max_weight": 1.4,
+      "min_ram": 32,
+      "note": "같은 급 CPU·그래픽(Intel Graphics 4코어) 제품군 최저가 · 조건(A등급) 미달 관심군"
+    }
+  ],
+  "watch_groups_policy": "관심 모델·비슷한 성능 제품군은 등급 조건과 무관하게 그룹 최저가 하락 시 알림. B390급(A등급)은 기존 조건 알림에서 처리"
 }

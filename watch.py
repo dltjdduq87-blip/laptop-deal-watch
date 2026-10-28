@@ -464,6 +464,9 @@ def main():
    key='cheapest:'+cheapest['perf_key']+':'+str(cheapest['effective_price_krw'])
    if deliver(state,report,key,head+candidate_message(report,{**cheapest,'band_rank':None})):
     state['cheapest_alert']={'price':cheapest['effective_price_krw'],'name':cheapest['name'],'perf_key':cheapest['perf_key']}
+ if not a.dry_run and config.get('watch_groups'):
+  import watchlist
+  for key,message in watchlist.due(config['watch_groups'],report.get('review_candidates',[])+[p for p in market_products if p.get('cpu')],state):deliver(state,report,key,message)
  if not a.dry_run and config.get('events'):
   from events import due_alerts
   top_lines=[('['+p['ai_game_tier']+'] '+won(p['effective_price_krw'])+' '+p['model_key'][:38]) for p in report['top_by_band_flat'][:5]]
