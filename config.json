@@ -372,20 +372,28 @@
   ],
   "watch_groups": [
     {
-      "id": "omnibook-ultra-14",
-      "label": "HP 옴니북 Ultra 14 (14-kd005x)",
-      "name_pattern": "옴니북\\s*(울트라|Ultra)\\s*14|14-kd00\\d\\d",
+      "id": "omnibook-ultra-14-x9",
+      "label": "HP 옴니북 Ultra 14 (14-kd0071TU · 울트라 X9 388H)",
+      "name_pattern": "14-kd0071",
       "min_ram": 32,
-      "note": "그래픽: Intel Graphics 4코어(코어 울트라7 356H) — Arc B390 아님 · 게임·로컬AI 조건(A등급) 미달, 휴대성 관심 모델"
+      "note": "Arc B390 · 32GB · 1.27kg · A등급 조건 충족 (새 제품은 예산 초과, 쿠팡 반품 259.9만 확인 이력)"
     },
     {
-      "id": "panther-lake-4core-light",
-      "label": "옴니북 Ultra 14와 비슷한 성능 (코어 울트라7/9 시리즈3 H · 4코어 그래픽 · 1.4kg 이하)",
-      "cpu_pattern": "울트라[79]\\s*\\(S3\\)\\s*3[5-8]\\dH",
-      "max_weight": 1.4,
+      "id": "b390-class",
+      "label": "옴니북 Ultra 14 X9와 비슷한 성능 (Arc B390 · 울트라 X7/X9 · 32GB · 1.6kg 이하)",
+      "cpu_pattern": "울트라\\s*X[79]",
+      "max_weight": 1.6,
       "min_ram": 32,
-      "note": "같은 급 CPU·그래픽(Intel Graphics 4코어) 제품군 최저가 · 조건(A등급) 미달 관심군"
+      "note": "같은 Arc B390급 제품군 최저가 (예산 300만 초과 포함)"
     }
   ],
-  "watch_groups_policy": "관심 모델·비슷한 성능 제품군은 등급 조건과 무관하게 그룹 최저가 하락 시 알림. B390급(A등급)은 기존 조건 알림에서 처리"
+  "watch_groups_policy": "관심 모델·비슷한 성능 제품군은 예산·등급과 무관하게 그룹 최저가 하락 시 알림",
+  "watch_sweep": {
+    "start_price": 3000001,
+    "end_price": 4500000,
+    "pages_per_run": 2,
+    "delay": 1.0,
+    "max_age_hours": 48,
+    "note": "관심 모델용: 예산 위(300~450만) 구간도 순환 수집해 반품·할인 비교 기준가로 사용"
+  }
 }

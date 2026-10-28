@@ -466,7 +466,13 @@ def main():
     state['cheapest_alert']={'price':cheapest['effective_price_krw'],'name':cheapest['name'],'perf_key':cheapest['perf_key']}
  if not a.dry_run and config.get('watch_groups'):
   import watchlist
-  for key,message in watchlist.due(config['watch_groups'],report.get('review_candidates',[])+[p for p in market_products if p.get('cpu')],state):deliver(state,report,key,message)
+  extra=[]
+  if config.get('watch_sweep') and sweep_cfg:
+   from sweep import sweep as _sw
+   ws=state.setdefault('watch_sweep_state',{})
+   try:_row,extra=_sw(fetch,ws,{**sweep_cfg,**config['watch_sweep']});report['watch_sweep']=_row
+   except Exception as e:report['watch_sweep']={'status':'error','code':type(e).__name__}
+  for key,message in watchlist.due(config['watch_groups'],report.get('review_candidates',[])+[p for p in market_products if p.get('cpu')]+extra,state):deliver(state,report,key,message)
  if not a.dry_run and config.get('events'):
   from events import due_alerts
   top_lines=[('['+p['ai_game_tier']+'] '+won(p['effective_price_krw'])+' '+p['model_key'][:38]) for p in report['top_by_band_flat'][:5]]
@@ -483,7 +489,7 @@ def main():
     got=hotdeal.parse_rss(fetch(f['url']),f['name']);items+=got;hd['feeds'].append({'name':f['name'],'status':'collected','items':len(got)})
    except Exception as e:hd['feeds'].append({'name':f['name'],'status':'error','code':str(e) if isinstance(e,ValueError) else type(e).__name__})
   band=(config['enuri_sweep'].get('start_price',1500000),config['enuri_sweep'].get('end_price',3000000)) if config.get('enuri_sweep') else (1500000,3000000)
-  deals=hotdeal.new_laptop_deals(items,seen,band,config.get('as_policy'),tuple(config.get('allowed_brands') or hotdeal.DEFAULT_BRANDS),tuple(config.get('brands_require_genuine') or ()),hotdeal.build_reference(list((state.get('enuri_sweep') or {}).get('items',{}).values())),None if first else fetch)
+  deals=hotdeal.new_laptop_deals(items,seen,band,config.get('as_policy'),tuple(config.get('allowed_brands') or hotdeal.DEFAULT_BRANDS),tuple(config.get('brands_require_genuine') or ()),hotdeal.build_reference(list((state.get('enuri_sweep') or {}).get('items',{}).values())+list(((state.get('watch_sweep_state') or {}).get('enuri_sweep') or {}).get('items',{}).values())),None if first else fetch)
   hd['deals']=[{k:d.get(k) for k in ('title','link','feed','fit','as_line','price_krw','is_return','reference','specs')} for d in deals]
   if not a.dry_run and not first:
    for d in deals[:config.get('hotdeal_max_alerts_per_run',5)]:deliver(state,report,'hotdeal:'+d['id'],hotdeal.message(d))
