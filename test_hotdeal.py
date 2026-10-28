@@ -84,5 +84,19 @@ class HotdealTest(unittest.TestCase):
         self.assertIn('83E2002GKR', hotdeal.model_codes('레노버 요가 83E2002GKR'))
 
 
+    def test_body_specs(self):
+        page = ('<div class="sidebar">RTX 4090 64GB 다른 딜</div><div class="view_content autolink">'
+                '<p>갤럭시북6 프로 (NT940XJG-K72A)</p><p>GPU : 인텔 Arc B390</p><p>RAM : LPDDR5X 32GB</p>'
+                '<p>SSD 512GB 무게 약 1.24kg</p></div><div class="comment_wrapper">RTX 5090 128GB</div>')
+        self.assertEqual(hotdeal.extract_specs(hotdeal.body_text(page)),
+                         {'ram_gb': 32, 'gpu': 'Arc B390', 'weight_kg': 1.24, 'model': 'NT940XJG-K72A'})
+        items = [{'feed': '루리웹', 'id': 'b1', 'title': '[네이버] 갤럭시북6 프로 쿠폰 (304만)', 'link': 'https://a/b1'}]
+        d = hotdeal.new_laptop_deals(items, [], fetch_body=lambda u: page)[0]
+        self.assertEqual(set(d['fit']), {'32GB+', '외장/고성능 GPU'})
+        self.assertIn('본문 사양: RAM 32GB · Arc B390 · 1.24kg', hotdeal.message(d))
+        bad = hotdeal.new_laptop_deals([{**items[0], 'id': 'b2'}], [], fetch_body=lambda u: 1 / 0)[0]
+        self.assertIn('조건 정보 부족(제목 기준)', hotdeal.message(bad))
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -35,6 +35,40 @@ def model_codes(text):
     return out
 
 
+BODY_START = ('class="view_content', 'class="board-contents', 'id="board-contents', 'class="board_contents')
+BODY_END = ('class="comment', 'id="comment', 'class="row_comment', 'class="recommend', 'class="source_url')
+RAM_BODY = re.compile(r'(?:RAM|램|메모리|LPDDR\w*|DDR\d\w*)\s*[:：]?\s*(?:LPDDR\w*|DDR\d\w*)?\s*(\d{1,3})\s*GB', re.I)
+WEIGHT = re.compile(r'(\d\.\d{1,3})\s*kg', re.I)
+
+
+def body_text(html_text):
+    """커뮤니티 글 페이지 HTML -> 본문 텍스트만 (사이드바·댓글의 다른 딜 제외). 본문 영역을 못 찾으면 ''."""
+    import html as _html
+    h = html_text or ''
+    starts = [h.find(m) for m in BODY_START if h.find(m) >= 0]
+    if not starts:
+        return ''
+    seg = h[min(starts):min(starts) + 60000]
+    ends = [seg.find(m, 50) for m in BODY_END if seg.find(m, 50) > 0]
+    if ends:
+        seg = seg[:min(ends)]
+    seg = re.sub(r'<(script|style)[^>]*>.*?</\1>', ' ', seg, flags=re.S | re.I)
+    t = _html.unescape(re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', seg)))
+    t = re.split(r'\s#[^\s#]+\s#', t)[0]  # 끝의 해시태그 묶음 제거
+    return t[:6000].strip()
+
+
+def extract_specs(text):
+    """본문에서 RAM·GPU·무게·모델 코드. 확인 못 한 항목은 None."""
+    t = text or ''
+    ram = [int(m[1]) for m in RAM_BODY.finditer(t) if 8 <= int(m[1]) <= 128]
+    gpu = GPU_STRONG.search(t)
+    w = [float(m[1]) for m in WEIGHT.finditer(t) if 0.6 <= float(m[1]) <= 4]
+    codes = model_codes(t)
+    return {'ram_gb': max(ram) if ram else None, 'gpu': re.sub(r'\s+', ' ', gpu[0]) if gpu else None,
+            'weight_kg': min(w) if w else None, 'model': codes[0] if codes else None}
+
+
 def build_reference(items):
     """가격비교 수집 결과 -> {모델코드: (최저가, 이름)}. 정확한 코드와 하이픈 앞 기본 코드 둘 다 등록."""
     ref = {}
@@ -107,10 +141,11 @@ def analyze(item, budget=(1500000, 3000000), policy=None, reference=None):
     is_return = bool(RETURN.search(t))
     prices = prices_krw(t)
     price = min(prices) if prices else None
+    specs = extract_specs(item.get('body')) if item.get('body') else None
     fit = []
-    if RAM_32.search(t):
+    if RAM_32.search(t) or (specs and (specs['ram_gb'] or 0) >= 32):
         fit.append('32GB+')
-    if GPU_STRONG.search(t):
+    if GPU_STRONG.search(t) or (specs and specs['gpu']):
         fit.append('외장/고성능 GPU')
     in_budget = price is not None and budget[0] <= price <= budget[1]
     if in_budget:
@@ -128,22 +163,37 @@ def analyze(item, budget=(1500000, 3000000), policy=None, reference=None):
     else:
         as_line = a['brand'] + ' · 공식 판매처 표기 없음 → 정품·보증 확인 필요'
     level = len(fit) + (1 if (official or a['domestic_brand']) and not UNOFFICIAL.search(t) else 0)
-    ref = reference_for(t, reference) if reference else None
+    ref = (reference_for(t + ' ' + ((specs or {}).get('model') or ''), reference) if reference else None)
     if is_return:
         level += 2
     if ref and price and price < ref['price']:
         level += 1
     return {**item, 'price_krw': price, 'fit': fit, 'level': level, 'brand': a['brand'],
             'official_seller': official, 'as_line': as_line, 'as_warranty': a.get('as_warranty'),
-            'is_return': is_return, 'reference': ref}
+            'is_return': is_return, 'reference': ref, 'specs': specs}
 
 
 def message(d):
     shop = re.match(r'\s*\[([^\]]+)\]', d['title'])
     head = '[반품 노트북] ' if d.get('is_return') else '[핫딜 노트북] '
-    lines = [head + ('조건 근접: ' + ', '.join(d['fit']) if d['fit'] else '조건 정보 부족(제목 기준)'),
+    specs = d.get('specs')
+    basis = '본문' if specs else '제목'
+    lines = [head + ('조건 근접: ' + ', '.join(d['fit']) if d['fit'] else '조건 정보 부족(' + basis + ' 기준)'),
              d['title'],
              '판매처: ' + (shop[1] if shop else '제목 미표기') + ' · 출처: ' + d['feed']]
+    if specs and any(specs.values()):
+        parts = []
+        if specs['ram_gb']:
+            parts.append('RAM ' + str(specs['ram_gb']) + 'GB' + ('' if specs['ram_gb'] >= 32 else ' (32GB 미만)'))
+        if specs['gpu']:
+            parts.append(specs['gpu'])
+        if specs['weight_kg']:
+            parts.append(str(specs['weight_kg']) + 'kg' + ('' if specs['weight_kg'] <= 1.6 else ' (1.6kg 초과)'))
+        if specs['model']:
+            parts.append(specs['model'])
+        lines.append('본문 사양: ' + ' · '.join(parts))
+    elif specs is not None:
+        lines.append('본문 사양: 확인 못 함 → 직접 확인 필요')
     ref = d.get('reference')
     if ref:
         line = '새 제품 최저가(' + ref['match'] + '): ' + format(ref['price'], ',') + '원 · ' + str(ref['name'])[:40]
@@ -154,11 +204,11 @@ def message(d):
     lines.append('공식 A/S: ' + d['as_line'])
     if d.get('as_warranty'):
         lines.append('  보증: ' + d['as_warranty'])
-    lines += ['커뮤니티 제목 기준이며 가격·쿠폰·재고·사양은 미확인입니다.', d['link']]
+    lines += ['커뮤니티 글 기준이며 가격·쿠폰·재고·사양은 판매 페이지에서 최종 확인하세요.', d['link']]
     return '\n'.join(lines)
 
 
-def new_laptop_deals(items, seen, budget=(1500000, 3000000), policy=None, brands=DEFAULT_BRANDS, require_genuine=(), reference=None):
+def new_laptop_deals(items, seen, budget=(1500000, 3000000), policy=None, brands=DEFAULT_BRANDS, require_genuine=(), reference=None, fetch_body=None, max_bodies=8):
     """Unseen laptop posts, best condition match first. Updates `seen` (list of ids, newest kept)."""
     out = []
     known = set(seen)
@@ -168,6 +218,12 @@ def new_laptop_deals(items, seen, budget=(1500000, 3000000), policy=None, brands
         known.add(it['id'])
         seen.append(it['id'])
         if is_laptop(it['title'], brands, require_genuine):
+            if fetch_body and max_bodies > 0:
+                max_bodies -= 1
+                try:
+                    it = {**it, 'body': body_text(fetch_body(it['link']))}
+                except Exception:
+                    it = {**it, 'body': ''}
             out.append(analyze(it, budget, policy, reference))
     del seen[:-800]
     return sorted(out, key=lambda d: -d['level'])
