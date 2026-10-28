@@ -238,9 +238,9 @@
       "start": "2026-10-29",
       "end": "2026-11-15",
       "notice_days": 7,
-      "notes": "참여 소개: G마켓·옥션·쿠팡·롯데ON·11번가·SSG 등 (상품별 참여 여부 별도)",
-      "source_url": "https://www.make2t.kr/2026/10/k-sale-festa-2026-period-discounts.html",
-      "confirmed": false
+      "notes": "코리아 그랜드 페스티벌 쇼핑 부문. 노트북 전용 공식 할인은 발표 없음 — 삼성·LG 가전 할인은 11/1부터, 11번가·G마켓·네이버는 중소상인 상품 위주 쿠폰. 노트북은 몰별 가격 하락으로만 확인",
+      "source_url": "https://www.gpkorea.com/news/articleView.html?idxno=146333",
+      "confirmed": true
     }
   ],
   "events_policy": "출처 있는 일정만 사용. coupon_drops에는 쇼핑몰이 발급 시각을 발표한 쿠폰만 {id,name,at(KST ISO),conditions,source_url}로 추가. 3단계: 전날 20시~2시간 전 / 1시간 전 / 발급 시각부터 20분. GitHub 예약 실행 지연으로 창을 놓친 단계는 늦게 보내지 않음",
