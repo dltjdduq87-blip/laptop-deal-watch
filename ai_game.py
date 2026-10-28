@@ -31,7 +31,8 @@ STRONG_IGPU = re.compile(r'Arc\s*B390|Radeon\s*80[56]0S', re.I)
 
 # 가격비교 사이트가 그래픽을 'Intel Graphics'로만 적는 경우: 울트라 X7/X9(팬서레이크)는 Arc B390 탑재 모델
 CPU_IMPLIES_B390 = re.compile(r'울트라\s*X[79]|Ultra\s*X[79]', re.I)
-CPU_IMPLIES_8060S = re.compile(r'AI\s*Max\+?\s*39\d', re.I)
+CPU_IMPLIES_8060S = re.compile(r'(?:AI\s*Max|AI\s*맥스)\s*(?:\+|플러스)?\s*(?:PRO\s*|프로\s*)?(395|392|388)', re.I)
+CPU_IMPLIES_8050S = re.compile(r'(?:AI\s*Max|AI\s*맥스)\s*(?:\+|플러스)?\s*(?:PRO\s*|프로\s*)?(390|385)', re.I)
 
 
 def strong_igpu(p):
@@ -43,6 +44,8 @@ def strong_igpu(p):
         return 'Arc B390'
     if CPU_IMPLIES_8060S.search(cpu):
         return 'Radeon 8060S'
+    if CPU_IMPLIES_8050S.search(cpu):
+        return 'Radeon 8050S'
     return None
 
 

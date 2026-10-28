@@ -472,7 +472,13 @@ def main():
    ws=state.setdefault('watch_sweep_state',{})
    try:_row,extra=_sw(fetch,ws,{**sweep_cfg,**config['watch_sweep']});report['watch_sweep']=_row
    except Exception as e:report['watch_sweep']={'status':'error','code':type(e).__name__}
-  for key,message in watchlist.due(config['watch_groups'],report.get('review_candidates',[])+[p for p in market_products if p.get('cpu')]+extra,state):deliver(state,report,key,message)
+  try:
+   for key,message,gid,price in watchlist.due(config['watch_groups'],report.get('review_candidates',[])+[p for p in market_products if p.get('cpu')]+extra,state,config.get('allowed_brands'),tuple(config.get('brands_require_genuine') or ()),report=report):
+    if deliver(state,report,key,message):watchlist.commit(state,gid,price)
+   cutoff=(now-timedelta(days=30)).date().isoformat()
+   for k in [k for k in state.get('sent',{}) if k.startswith('watch:') and (k.rsplit(':',1)[-1]<cutoff or k.count(':')<3)]:state['sent'].pop(k,None)
+  except Exception as e:
+   report['watch_groups_error']=type(e).__name__;report.setdefault('errors',[]).append({'source':'watch_groups','code':type(e).__name__})
  if not a.dry_run and config.get('events'):
   from events import due_alerts
   top_lines=[('['+p['ai_game_tier']+'] '+won(p['effective_price_krw'])+' '+p['model_key'][:38]) for p in report['top_by_band_flat'][:5]]

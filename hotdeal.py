@@ -21,8 +21,23 @@ UNOFFICIAL = re.compile(r'병행|해외\s*직구|직구|해외판|글로벌\s*�
 GPU_STRONG = re.compile(r'RTX\s*-?\s*\d{4}|Radeon\s*RX|Arc\s*B390|8060S|8050S', re.I)
 RAM_32 = re.compile(r'(32|48|64|96|128)\s*(GB|G)\b', re.I)
 # 쿠팡 반품마켓 등 반품 상품: 같은 성능 새 제품보다 싸게 나오는 경우가 많아 따로 표시·우선 알림
-RETURN = re.compile(r'반품\s*마켓|반품\s*상품|반품\s*\(?\s*(최상|상급|상|중|S급|A급)|와우\s*반품|\(\s*반품\s*\)|\[\s*반품\s*\]|반품\s*특가|반품\s*노트북|노트북.{0,20}반품', re.I)
-MODEL_CODE = re.compile(r'\b(?=[A-Z0-9-]*\d)(?=[A-Z0-9-]*[A-Z])[A-Z0-9]{2,}(?:-[A-Z0-9]{2,})?\b')
+RETURN = re.compile(r'반품\s*마켓|반품\s*상품|반품\s*\(?\s*(최상|상급|S급|A급)|반품.{0,30}\(\s*(최상|상|중|S급|A급)\s*\)|와우\s*반품|\(\s*반품\s*\)|\[\s*반품\s*\]|반품\s*특가|반품\s*노트북|^\s*(\[[^\]]*\]\s*)?반품(?=\s)|쿠팡\s*반품(?!\s*(비|시|가능|정책|불가|기간|배송))|반품[-\s]*(상태\s*)?(최상|상급|S급|A급)', re.I)
+STRONG_RETURN = re.compile(r'반품\s*마켓|반품\s*상품|와우\s*반품|[(\[]\s*반품\s*[)\]]', re.I)
+# 배송·교환 안내 문구의 '반품'은 반품 상품이 아님 (단 '반품마켓/반품상품/반품특가'는 제외하지 않음)
+_NR = r'(?!\s*(마켓|상품|특가))'
+NOT_RETURN = re.compile(r'무료\s*반품' + _NR + r'|교환\s*/?\s*반품' + _NR + r'|반품\s*/?\s*교환|반품\s*(비|시|불가|비용|배송|기간|가능|정책|후기|규정)|단순\s*변심\s*반품' + _NR + r'|\d+\s*일\s*(이내\s*)?(무료\s*)?반품' + _NR, re.I)
+
+
+def is_return_deal(title):
+    if STRONG_RETURN.search(title or ''):
+        return True
+    t = NOT_RETURN.sub(' ', title or '')
+    return bool(RETURN.search(t))
+MODEL_CODE = re.compile(r'\b(?=[A-Z0-9-]*\d)(?=[A-Z0-9-]*[A-Z])[A-Z0-9]{2,}(?:-[A-Z0-9]{2,}){0,2}\b')
+
+
+# CPU 이름·메모리 규격·해상도·GPU 등은 모델 코드가 아님
+NOT_MODEL = re.compile(r'^((I|R|U)[3579]-?\d|RYZEN\d?|AI\d|R\d-|CORE|GRAM\d|ULTRA|THUNDERBOLT|OFFICE|WIN\d|GALAXYBOOK|ZENBOOK|VIVOBOOK|ARC\d|SNAPDRAGON|OLED|(LP)?DDR\d|\d{3,4}X\d{3,4}$|HX\d|RTX|GTX|RX\d|M\d(PRO|MAX)?$|[0-9]+(GB|TB|MHZ|GHZ|MT|W|WH|HZ)\b|PCIE|USB|WIFI|GEN\d)')
 
 
 def model_codes(text):
@@ -30,14 +45,18 @@ def model_codes(text):
     out = []
     for m in MODEL_CODE.finditer((text or '').upper()):
         c = m[0]
-        if len(c.replace('-', '')) >= 7 and not re.fullmatch(r'\d+[A-Z]{0,3}', c.replace('-', '')) and not re.fullmatch(r'(RTX|GTX|RX)\d+', c):
+        flat = c.replace('-', '')
+        if (len(flat) >= 7 and not re.fullmatch(r'\d+[A-Z]{0,3}', flat) and not re.fullmatch(r'(RTX|GTX|RX)\d+', c)
+                and not NOT_MODEL.match(c)):
             out.append(c)
     return out
 
 
 BODY_START = ('class="view_content', 'class="board-contents', 'id="board-contents', 'class="board_contents')
 BODY_END = ('class="comment', 'id="comment', 'class="row_comment', 'class="recommend', 'class="source_url')
-RAM_BODY = re.compile(r'(?:RAM|램|메모리|LPDDR\w*|DDR\d\w*)\s*[:：]?\s*(?:LPDDR\w*|DDR\d\w*)?\s*(\d{1,3})\s*GB', re.I)
+RAM_BODY = re.compile(r'(?<![A-Za-z])(?:RAM|램|메모리|LPDDR\w*(?:-\d+)?|DDR\d\w*(?:-\d+)?)\s*[:：]?\s*(?:LPDDR\w*(?:-\d+)?|DDR\d\w*(?:-\d+)?)?\s*(\d{1,3})\s*GB', re.I)
+RAM_GRAPHICS = re.compile(r'그래픽|GPU|VRAM|비디오|전용|공유|GDDR', re.I)
+RAM_OPTION = re.compile(r'최대|업그레이드|옵션|지원|확장|증설')
 WEIGHT = re.compile(r'(\d\.\d{1,3})\s*kg', re.I)
 
 
@@ -54,18 +73,32 @@ def body_text(html_text):
         seg = seg[:min(ends)]
     seg = re.sub(r'<(script|style)[^>]*>.*?</\1>', ' ', seg, flags=re.S | re.I)
     t = _html.unescape(re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', seg)))
-    t = re.split(r'\s#[^\s#]+\s#', t)[0]  # 끝의 해시태그 묶음 제거
+    t = re.sub(r'(\s#[^\s#]+){2,}\s*$', '', t)  # 끝에 붙은 해시태그 묶음 제거
+    t = re.split(r'(?:\s#[^\s#\d][^\s#]*){4,}', t)[0]  # 본문 뒤쪽 해시태그 나열(4개 이상, 숫자 태그 제외) 제거
     return t[:6000].strip()
+
+
+def _sticks(t, end):
+    m = re.match(r'\s*[x×X*]\s*([1-4])\b', t[end:])
+    return int(m[1]) if m else 1
+
+
+def _clause_before(t, pos, n):
+    """pos 앞 n글자 중 같은 항목(구분자 ✔ • · , / | 줄 이후)에 속하는 부분만."""
+    return re.split(r'[✔✅•·,/|\]\)\n:：]', t[max(0, pos - n):pos])[-1]
 
 
 def extract_specs(text):
     """본문에서 RAM·GPU·무게·모델 코드. 확인 못 한 항목은 None."""
     t = text or ''
-    ram = [int(m[1]) for m in RAM_BODY.finditer(t) if 8 <= int(m[1]) <= 128]
+    ram = [int(m[1]) * _sticks(t, m.end()) for m in RAM_BODY.finditer(t)
+           if 8 <= int(m[1]) <= 128 and not RAM_OPTION.search(t[max(0, m.start() - 12):m.start()])
+           and not RAM_GRAPHICS.search(_clause_before(t, m.start(), 10) + t[m.start():m.start() + 4])
+           and not re.match(r'\s*(까지\s*)?(업그레이드|확장|증설|지원)', t[m.end():])]
     gpu = GPU_STRONG.search(t)
     w = [float(m[1]) for m in WEIGHT.finditer(t) if 0.6 <= float(m[1]) <= 4]
     codes = model_codes(t)
-    return {'ram_gb': max(ram) if ram else None, 'gpu': re.sub(r'\s+', ' ', gpu[0]) if gpu else None,
+    return {'ram_gb': ram[0] if ram else None, 'gpu': re.sub(r'\s+', ' ', gpu[0]) if gpu else None,
             'weight_kg': min(w) if w else None, 'model': codes[0] if codes else None}
 
 
@@ -77,7 +110,10 @@ def build_reference(items):
         if not price:
             continue
         for c in model_codes(it.get('model') or it.get('name')):
-            for key in (c, 'BASE:' + c.split('-')[0]):
+            base = c.split('-')[0]
+            keys = [c] + (['BASE:' + base] if '-' in c and len(base) >= 6 and re.search(r'[A-Z]', base) and re.search(r'\d', base)
+                          and not re.search(r'RYZEN|ULTRA|CORE|GRAM', base) else [])
+            for key in keys:
                 if key not in ref or price < ref[key][0]:
                     ref[key] = (price, it.get('name') or it.get('model'))
     return ref
@@ -89,7 +125,7 @@ def reference_for(title, ref):
             return {'price': ref[c][0], 'name': ref[c][1], 'match': '같은 모델'}
     for c in model_codes(title):
         k = 'BASE:' + c.split('-')[0]
-        if k in ref:
+        if '-' in c and k in ref:
             return {'price': ref[k][0], 'name': ref[k][1], 'match': '같은 시리즈(옵션 다를 수 있음)'}
     return None
 
@@ -111,8 +147,23 @@ def parse_rss(xml_text, feed_name):
     return items
 
 
+# 쿠폰·적립 금액(판매가 아님): '쿠폰 30만원', '10만원 할인'. '할인 249만원'처럼 할인 뒤 금액은 판매가로 둔다.
+_AMT = r'[\d,.]+\s*(?:만\s*원?|원)'
+PRICE_NOT_ITEM = re.compile(r'(?:쿠폰|적립금?|캐시백|페이백|포인트|상품권|할인)\s*:?\s*(?:최대\s*)?' + _AMT + r'(?=\s*(?:[→>~/,]|\d|$))'
+                            r'|(?:쿠폰|적립금?|캐시백|페이백|포인트|상품권)\s*:?\s*(?:최대\s*)?' + _AMT
+                            + r'|-\s*' + _AMT + r'|' + _AMT + r'\s*(?:[가-힣]{0,6}\s*)?(?:할인|쿠폰|적립|캐시백|페이백|OFF|다운|인하|↓|상당|증정)', re.I)
+
+
 def prices_krw(title):
+    found = _prices(PRICE_NOT_ITEM.sub(' ', title or '')) or _prices(title or '')
+    top = max(found) if found else 0
+    return [p for p in found if p >= top * 0.5]  # 할인·사은품 금액이 섞여도 판매가만 남김
+
+
+def _prices(title):
     found = []
+    for m in re.finditer(r'(\d{2,3})\s*[~-]\s*(\d{2,3})\s*만', title):
+        found += [int(m[1]) * 10000, int(m[2]) * 10000]
     for m in re.finditer(r'(\d{1,3}(?:,\d{3})+|\d{4,8})\s*원', title):
         found.append(int(m[1].replace(',', '')))
     for m in re.finditer(r'(\d{2,3}(?:\.\d+)?)\s*만\s*(?:원|원대)?', title):
@@ -138,7 +189,7 @@ def is_laptop(title, brands=DEFAULT_BRANDS, require_genuine=()):
 def analyze(item, budget=(1500000, 3000000), policy=None, reference=None):
     import as_service
     t = item['title']
-    is_return = bool(RETURN.search(t))
+    is_return = is_return_deal(t)
     prices = prices_krw(t)
     price = min(prices) if prices else None
     specs = extract_specs(item.get('body')) if item.get('body') else None
@@ -166,7 +217,9 @@ def analyze(item, budget=(1500000, 3000000), policy=None, reference=None):
     ref = (reference_for(t + ' ' + ((specs or {}).get('model') or ''), reference) if reference else None)
     if is_return:
         level += 2
-    if ref and price and price < ref['price']:
+    if ref and price and not (ref['price'] * 0.5 <= price):
+        ref = {**ref, 'price_suspect': True}  # 제목 가격이 기준가의 절반 미만: 잘못 읽은 금액일 수 있어 할인 비교 생략
+    if ref and price and not ref.get('price_suspect') and price < ref['price']:
         level += 1
     return {**item, 'price_krw': price, 'fit': fit, 'level': level, 'brand': a['brand'],
             'official_seller': official, 'as_line': as_line, 'as_warranty': a.get('as_warranty'),
@@ -197,7 +250,7 @@ def message(d):
     ref = d.get('reference')
     if ref:
         line = '새 제품 최저가(' + ref['match'] + '): ' + format(ref['price'], ',') + '원 · ' + str(ref['name'])[:40]
-        if d.get('price_krw') and d['price_krw'] < ref['price']:
+        if d.get('price_krw') and not ref.get('price_suspect') and d['price_krw'] < ref['price']:
             diff = ref['price'] - d['price_krw']
             line += '\n  → 이 글 ' + format(d['price_krw'], ',') + '원, ' + format(diff, ',') + '원(' + str(round(diff * 100 / ref['price'], 1)) + '%) 낮음'
         lines.append(line)

@@ -98,5 +98,54 @@ class HotdealTest(unittest.TestCase):
         self.assertIn('조건 정보 부족(제목 기준)', hotdeal.message(bad))
 
 
+    def test_reviewer_regressions(self):
+        for t in ['[네이버] 삼성 갤럭시북5 노트북 189만원 (무료배송/30일 무료반품)', '[11번가] HP 노트북 교환/반품 불가 특가',
+                  '삼성 노트북 반품 후기']:
+            self.assertFalse(hotdeal.is_return_deal(t), t)
+        for t in ['[쿠팡] 반품 HP 옴니북 울트라 14 (최상) 259만', '[쿠팡] 반품마켓 LG 그램 프로', '[쿠팡] 갤럭시북6 프로 반품 (상) 240만']:
+            self.assertTrue(hotdeal.is_return_deal(t), t)
+        self.assertEqual(hotdeal.model_codes('i7-13620H LPDDR5X DDR5-5600 2560x1600 HP 14-ep1234TU'), ['14-EP1234TU'])
+        ref = hotdeal.build_reference([{'model': 'HP 옴니북 울트라 14-kd0071TU', 'name': '옴니북', 'price_krw': 3290000}])
+        self.assertIsNone(hotdeal.reference_for('HP 14-ep1234TU 69만원', ref))
+        self.assertEqual(hotdeal.extract_specs('RTX 4060 VRAM 8GB')['ram_gb'], None)
+        self.assertEqual(hotdeal.extract_specs('램 16GB (최대 메모리 32GB 업그레이드)')['ram_gb'], 16)
+        self.assertEqual(hotdeal.extract_specs('LPDDR5X 메모리')['model'], None)
+        self.assertEqual(hotdeal.prices_krw('ASUS TUF 1,890,000원 (쿠폰 30만원)'), [1890000])
+
+
+    def test_second_review_regressions(self):
+        for t in ['쿠팡 30일 반품마켓 그램', '[쿠팡] 11일 반품마켓 특가 그램', '무료 반품마켓 그램', 'LG 그램 노트북 쿠팡 반품 150만']:
+            self.assertTrue(hotdeal.is_return_deal(t), t)
+        self.assertEqual(hotdeal.prices_krw('[쿠팡] 그램 쿠폰 50만원 할인 249만원'), [2490000])
+        for t, want in [('카드할인 249만원', 2490000), ('[11번가] LG 그램 16 추가할인 199만원', 1990000),
+                        ('쿠폰할인 1,890,000원', 1890000), ('LG그램 (카드 249만원)', 2490000), ('(304만/무배)', 3040000),
+                        ('갤럭시북 10만원 할인 289만', 2890000)]:
+            self.assertEqual(min(hotdeal.prices_krw(t)), want, t)
+        self.assertEqual(hotdeal.model_codes('RYZEN7-8845HS AI9-HX370 R9-HX370 GRAM16-ZD90'), [])
+        for c in ['NT940XJG-K72A', '16ZD90U-GX59K', '83E2002GKR', '14-KD0071TU', '17Z90SP-ED7HK', 'FA401UV', 'UX8407AA-SN430W']:
+            self.assertEqual(hotdeal.model_codes(c), [c], c)
+        self.assertIsNone(hotdeal.extract_specs('그래픽 메모리 8GB')['ram_gb'])
+        self.assertEqual(hotdeal.extract_specs('그래픽 메모리 8GB 램 16GB')['ram_gb'], 16)
+        self.assertEqual(hotdeal.extract_specs('공유 메모리 16GB RAM 32GB')['ram_gb'], 32)
+        self.assertEqual(hotdeal.extract_specs('LPDDR5X-8533 32GB')['ram_gb'], 32)
+        self.assertEqual(hotdeal.extract_specs('✔ GPU : 인텔 Arc B390 그래픽 ✔ RAM : LPDDR5X 32GB')['ram_gb'], 32)
+
+
+    def test_third_review_regressions(self):
+        for t, want in [('30만원 카드할인 229만', 2290000), ('30만원 즉시 할인 229만', 2290000), ('할인 30만원 229만', 2290000),
+                        ('할인 30만원 → 199만원', 1990000), ('ASUS 30만원 다운 229만', 2290000), ('신세계상품권 30만원 LG그램 249만', 2490000),
+                        ('-30만 199만', 1990000), ('그램 199~229만', 1990000), ('289만→259만', 2590000), ('할인 249만원', 2490000)]:
+            self.assertEqual(min(hotdeal.prices_krw(t)), want, t)
+        for t in ['쿠팡 반품비 무료 LG 노트북', '[쿠팡] 쿠팡 반품 시 배송비 무료', '14일 무료반품 노트북', '30일 무료반품 노트북 LG그램',
+                  '단순변심 반품 가능 그램']:
+            self.assertFalse(hotdeal.is_return_deal(t), t)
+        for t in ['[쿠팡] 그램 16 (반품-최상) 189만', '갤럭시북 반품 상태 최상 210만']:
+            self.assertTrue(hotdeal.is_return_deal(t), t)
+        self.assertEqual(hotdeal.model_codes('THUNDERBOLT4 OFFICE2024 GALAXYBOOK5 ZENBOOK14 ARC140V'), [])
+        self.assertEqual(hotdeal.model_codes('에이서 SFG14-73-71ZX'), ['SFG14-73-71ZX'])
+        self.assertEqual(hotdeal.extract_specs('RAM: 16GB x2 (32GB)')['ram_gb'], 32)
+        self.assertEqual(hotdeal.extract_specs('램 16GBx2')['ram_gb'], 32)
+
+
 if __name__ == '__main__':
     unittest.main()

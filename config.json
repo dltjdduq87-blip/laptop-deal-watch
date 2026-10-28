@@ -381,7 +381,7 @@
     {
       "id": "b390-class",
       "label": "옴니북 Ultra 14 X9와 비슷한 성능 (Arc B390 · 울트라 X7/X9 · 32GB · 1.6kg 이하)",
-      "cpu_pattern": "울트라\\s*X[79]",
+      "cpu_pattern": "(울트라|Ultra)\\s*X[79]",
       "max_weight": 1.6,
       "min_ram": 32,
       "note": "같은 Arc B390급 제품군 최저가 (예산 300만 초과 포함)"
