@@ -485,7 +485,7 @@ def main():
    try:_row,extra=_sw(fetch,ws,{**sweep_cfg,**config['watch_sweep']});report['watch_sweep']=_row
    except Exception as e:report['watch_sweep']={'status':'error','code':type(e).__name__}
   try:
-   for key,message,gid,price in watchlist.due(config['watch_groups'],report.get('review_candidates',[])+[p for p in market_products if p.get('cpu')]+extra+[v['last_observation'] for v in state.get('products',{}).values() if isinstance(v,dict) and (v.get('last_observation') or {}).get('site')=='LG' and v['last_observation'].get('cpu')],state,config.get('allowed_brands'),tuple(config.get('brands_require_genuine') or ()),report=report,coupon_events=config.get('events')):
+   for key,message,gid,price in watchlist.due(config['watch_groups'],report.get('review_candidates',[])+[p for p in market_products if p.get('cpu')]+extra+watchlist.fresh_official(state.get('products'),now),state,config.get('allowed_brands'),tuple(config.get('brands_require_genuine') or ()),report=report,coupon_events=config.get('events')):
     if deliver(state,report,key,message):watchlist.commit(state,gid,price)
    cutoff=(now-timedelta(days=30)).date().isoformat()
    for k in [k for k in state.get('sent',{}) if k.startswith('watch:') and (k.rsplit(':',1)[-1]<cutoff or k.count(':')<3)]:state['sent'].pop(k,None)

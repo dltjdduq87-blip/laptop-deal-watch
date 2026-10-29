@@ -20,6 +20,16 @@ class LgCouponTest(unittest.TestCase):
         out = watchlist.due(g, p, {}, ['LG'], now=datetime(2026, 10, 29, 4, tzinfo=timezone.utc), coupon_events=EV)
         self.assertIn('2,998,370원', out[0][1])
 
+    def test_model_field_match_and_freshness(self):
+        now = datetime(2026, 10, 29, 4, tzinfo=timezone.utc)
+        g = [{'id': 'gram', 'label': 'g', 'name_pattern': '16Z90U-?KU7', 'min_ram': 32}]
+        p = [{'name': 'LG 그램 Pro', 'model': '16Z90U-KU7WK', 'site': 'LG', 'price_krw': 3383400, 'ram_gb': 32, 'in_stock': True}]
+        self.assertEqual(len(watchlist.due(g, p, {}, ['LG'], now=now)), 1)
+        st = {'a': {'last_observation': {'site': 'LG', 'cpu': 'X7', 'observed_at': (now - timedelta(hours=1)).isoformat()}},
+              'b': {'last_observation': {'site': 'LG', 'cpu': 'X7', 'observed_at': (now - timedelta(days=5)).isoformat()}},
+              'c': {'last_observation': {'site': 'LG', 'cpu': 'X7', 'in_stock': False, 'observed_at': now.isoformat()}}}
+        self.assertEqual(len(watchlist.fresh_official(st, now)), 1)
+
 
 if __name__ == '__main__':
     unittest.main()

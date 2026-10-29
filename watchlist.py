@@ -20,7 +20,7 @@ def members(group, products, brands=None, require_genuine=()):
         price = p.get('effective_price_krw') or p.get('price_krw')
         if not price or p.get('in_stock') is False:
             continue
-        hit = (name_re and name_re.search(str(p.get('name') or ''))) or (cpu_re and cpu_re.search(str(p.get('cpu') or '')))
+        hit = (name_re and name_re.search(str(p.get('name') or '') + ' ' + str(p.get('model') or ''))) or (cpu_re and cpu_re.search(str(p.get('cpu') or '')))
         if not hit:
             continue
         if group.get('max_weight') and not (p.get('weight_kg') and p['weight_kg'] <= group['max_weight']):
@@ -55,6 +55,24 @@ def coupon_estimate(p, coupon_events, today):
         if off:
             return price - off, off, ev
     return None
+
+
+def fresh_official(state_products, now=None, max_age_hours=72):
+    """직전 실행들에서 수집한 LG 공식몰 관측 중 최근·재고 있음만 (오래된 가격이 최저가로 남지 않게)."""
+    now = now or datetime.now(timezone.utc)
+    out = []
+    for v in (state_products or {}).values():
+        o = (v or {}).get('last_observation') if isinstance(v, dict) else None
+        if not o or o.get('site') != 'LG' or not o.get('cpu') or o.get('in_stock') is False:
+            continue
+        try:
+            at = datetime.fromisoformat(o['observed_at'])
+            at = at if at.tzinfo else at.replace(tzinfo=timezone.utc)
+        except Exception:
+            continue
+        if now - at <= timedelta(hours=max_age_hours):
+            out.append(o)
+    return out
 
 
 def won(v):
