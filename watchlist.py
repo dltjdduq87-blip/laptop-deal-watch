@@ -144,3 +144,47 @@ def due(groups, products, state, brands=None, require_genuine=(), now=None, repo
 def commit(state, group_id, price, now=None):
     now = now or datetime.now(timezone.utc)
     state.setdefault('watch_groups', {})[group_id] = {'low': price, 'at': now.isoformat()}
+
+
+def _tier_off(price, tiers):
+    return max((amt for floor, amt in tiers if price >= floor), default=0)
+
+
+def official_coupon_alert(groups, products, coupon_events, brands=None, require_genuine=(), now=None):
+    """관심 그룹에 속한 쿠폰 대상 공식몰 상품의 '쿠폰 적용 예상가' 요약 (key, message) 또는 None.
+
+    표시가 기준과, 공식몰이 광고하는 최대혜택가 기준(쿠폰 중복 가능 여부 미확인)을 나눠 보여 준다.
+    key에 가격이 들어가므로 가격이 바뀔 때만 다시 보낸다.
+    """
+    now = now or datetime.now(timezone.utc)
+    today = now.astimezone(timezone(timedelta(hours=9))).date().isoformat()
+    for ev in coupon_events or []:
+        tiers, site = ev.get('coupon_tiers'), ev.get('coupon_site')
+        if not tiers or not site or not (ev['start'][:10] <= today <= ev['end'][:10]):
+            continue
+        rows, seen = [], set()
+        for g in groups or []:
+            for p in members(g, products, brands, require_genuine):
+                if p.get('site') != site or p.get('model') in seen:
+                    continue
+                seen.add(p.get('model'))
+                price = p.get('price_krw') or p['_price']
+                off = _tier_off(price, tiers)
+                if not off:
+                    continue
+                line = '· ' + str(p.get('model') or p.get('name')) + ' 표시가 ' + won(price) + ' → 쿠폰 -' + won(off) + ' = ' + won(price - off)
+                mb = p.get('advertised_max_benefit_unverified')
+                if isinstance(mb, int) and 0 < mb < price:
+                    mb_off = _tier_off(mb, tiers)
+                    line += '\n   최대혜택가 ' + won(mb) + ' 기준이면 ' + won(mb - mb_off) + ' (쿠폰 -' + won(mb_off) + ', 중복 가능 여부 미확인)'
+                rows.append((price - off, line, price))
+        if not rows:
+            continue
+        rows.sort()
+        msg = ('[' + site + '닷컴 쿠폰 적용 예상가] ' + ev['name'] + ' (~' + ev['end'][5:10].replace('-', '/') + ')\n'
+               + '\n'.join(r[1] for r in rows)
+               + '\n' + ev.get('coupon_note', '발급·적용 미확인') + ' · 실결제가 아님'
+               + '\n근거: ' + ev.get('source_url', ''))
+        key = 'lgcoupon:' + ev['id'] + ':' + '-'.join(str(r[2]) for r in rows)
+        return key, msg
+    return None

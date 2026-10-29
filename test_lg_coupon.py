@@ -30,6 +30,18 @@ class LgCouponTest(unittest.TestCase):
               'c': {'last_observation': {'site': 'LG', 'cpu': 'X7', 'in_stock': False, 'observed_at': now.isoformat()}}}
         self.assertEqual(len(watchlist.fresh_official(st, now)), 1)
 
+    def test_official_summary(self):
+        now = datetime(2026, 10, 29, 4, tzinfo=timezone.utc)
+        g = [{'id': 'gram', 'label': 'g', 'name_pattern': '16Z90U-?KU7', 'min_ram': 32}]
+        p = [{'name': 'LG 그램 Pro AI 2026', 'model': '16Z90U-KU7BK', 'site': 'LG', 'price_krw': 3510000,
+              'advertised_max_benefit_unverified': 3264300, 'ram_gb': 32, 'in_stock': True},
+             {'name': '다나와 16Z90U-KU7BK', 'site': '다나와', 'price_krw': 3369860, 'ram_gb': 32}]
+        key, msg = watchlist.official_coupon_alert(g, p, EV, ['LG'], now=now)
+        self.assertIn('3,240,000원', msg)
+        self.assertIn('2,994,300원', msg)
+        self.assertNotIn('다나와', msg)
+        self.assertIsNone(watchlist.official_coupon_alert(g, p, EV, ['LG'], now=datetime(2026, 12, 2, tzinfo=timezone.utc)))
+
 
 if __name__ == '__main__':
     unittest.main()

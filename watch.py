@@ -487,6 +487,9 @@ def main():
   try:
    for key,message,gid,price in watchlist.due(config['watch_groups'],report.get('review_candidates',[])+[p for p in market_products if p.get('cpu')]+extra+watchlist.fresh_official(state.get('products'),now),state,config.get('allowed_brands'),tuple(config.get('brands_require_genuine') or ()),report=report,coupon_events=config.get('events')):
     if deliver(state,report,key,message):watchlist.commit(state,gid,price)
+   oc=watchlist.official_coupon_alert(config['watch_groups'],watchlist.fresh_official(state.get('products'),now),config.get('events'),config.get('allowed_brands'),tuple(config.get('brands_require_genuine') or ()),now)
+   if oc and oc[0]!=state.get('official_coupon_key') and deliver(state,report,oc[0],oc[1]):
+    state['sent'].pop(state.get('official_coupon_key') or '',None);state['official_coupon_key']=oc[0]
    cutoff=(now-timedelta(days=30)).date().isoformat()
    for k in [k for k in state.get('sent',{}) if k.startswith('watch:') and (k.rsplit(':',1)[-1]<cutoff or k.count(':')<3)]:state['sent'].pop(k,None)
   except Exception as e:
