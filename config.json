@@ -25,6 +25,30 @@
       "site": "11번가",
       "product_id": "9327563209",
       "url": "https://www.11st.co.kr/products/9327563209"
+    },
+    {
+      "id": "lg-16z90u-ku70k",
+      "site": "LG",
+      "model": "16Z90U-KU70K",
+      "url": "https://www.lge.co.kr/product/notebook/16z90u-ku70k"
+    },
+    {
+      "id": "lg-16z90u-ku7wk",
+      "site": "LG",
+      "model": "16Z90U-KU7WK",
+      "url": "https://www.lge.co.kr/product/notebook/16z90u-ku7wk"
+    },
+    {
+      "id": "lg-16z90u-ku7bk",
+      "site": "LG",
+      "model": "16Z90U-KU7BK",
+      "url": "https://www.lge.co.kr/product/notebook/16z90u-ku7bk"
+    },
+    {
+      "id": "lg-16z90u-ku7ek",
+      "site": "LG",
+      "model": "16Z90U-KU7EK",
+      "url": "https://www.lge.co.kr/product/notebook/16z90u-ku7ek"
     }
   ],
   "unsupported": [
@@ -241,6 +265,45 @@
       "notes": "코리아 그랜드 페스티벌 쇼핑 부문. 노트북 전용 공식 할인은 발표 없음 — 삼성·LG 가전 할인은 11/1부터, 11번가·G마켓·네이버는 중소상인 상품 위주 쿠폰. 노트북은 몰별 가격 하락으로만 확인",
       "source_url": "https://www.gpkorea.com/news/articleView.html?idxno=146333",
       "confirmed": true
+    },
+    {
+      "id": "lge-blackfriday-kgf-2026",
+      "name": "LG전자 블랙프라이데이 with 코리아 그랜드 페스티벌",
+      "start": "2026-10-29",
+      "end": "2026-11-30",
+      "notice_days": 0,
+      "notes": "LGE.COM 앱 쿠폰팩: 50만↑5만/100만↑10만/150만↑15만/200만↑20만/250만↑23만/300만↑27만 · 베스트샵 11/1~30 최대 104만 쿠폰팩 · 그램 포함 15개 품목",
+      "source_url": "https://www.ajunews.com/view/20261027090356802",
+      "confirmed": true,
+      "coupon_site": "LG",
+      "coupon_tiers": [
+        [
+          500000,
+          50000
+        ],
+        [
+          1000000,
+          100000
+        ],
+        [
+          1500000,
+          150000
+        ],
+        [
+          2000000,
+          200000
+        ],
+        [
+          2500000,
+          230000
+        ],
+        [
+          3000000,
+          270000
+        ]
+      ],
+      "coupon_note": "LGE.COM 앱 전용 · 발급·중복·품목 적용 미확인",
+      "coupon_drops": []
     }
   ],
   "events_policy": "출처 있는 일정만 사용. coupon_drops에는 쇼핑몰이 발급 시각을 발표한 쿠폰만 {id,name,at(KST ISO),conditions,source_url}로 추가. 3단계: 전날 20시~2시간 전 / 1시간 전 / 발급 시각부터 20분. GitHub 예약 실행 지연으로 창을 놓친 단계는 늦게 보내지 않음",
@@ -385,6 +448,13 @@
       "max_weight": 1.6,
       "min_ram": 32,
       "note": "같은 Arc B390급 제품군 최저가 (예산 300만 초과 포함)"
+    },
+    {
+      "id": "lg-gram-pro16-b390",
+      "label": "LG 2026 그램 프로16 (16Z90U-KU7 · 울트라 X7 358H · Arc B390)",
+      "name_pattern": "16Z90U-?KU7",
+      "min_ram": 32,
+      "note": "32GB · 1.19kg · LGE.COM 블프 앱 쿠폰 예상가 함께 표시 (쿠폰 적용 미확인)"
     }
   ],
   "watch_groups_policy": "관심 모델·비슷한 성능 제품군은 예산·등급과 무관하게 그룹 최저가 하락 시 알림",

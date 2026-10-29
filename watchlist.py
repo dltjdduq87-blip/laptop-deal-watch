@@ -42,6 +42,21 @@ def members(group, products, brands=None, require_genuine=()):
     return sorted(out, key=lambda p: p['_price'])
 
 
+def coupon_estimate(p, coupon_events, today):
+    """LG 공식몰 등 행사 쿠폰 구간표로 계산한 '쿠폰 적용 시 예상가'. 발급·적용 자격은 미확인."""
+    price = p.get('_price') or p.get('price_krw')
+    for ev in coupon_events or []:
+        tiers = ev.get('coupon_tiers')
+        if not tiers or not price or p.get('site') != ev.get('coupon_site'):
+            continue
+        if not (ev['start'][:10] <= today <= ev['end'][:10]):
+            continue
+        off = max((amt for floor, amt in tiers if price >= floor), default=0)
+        if off:
+            return price - off, off, ev
+    return None
+
+
 def won(v):
     return format(v, ',') + '원'
 
@@ -59,7 +74,7 @@ def _entry(entry):
         return entry.get('low'), datetime(1970, 1, 1, tzinfo=timezone.utc)
 
 
-def due(groups, products, state, brands=None, require_genuine=(), now=None, report=None):
+def due(groups, products, state, brands=None, require_genuine=(), now=None, report=None, coupon_events=None):
     """[(key, message, group_id, price)] — 기준가보다 싸진 그룹(또는 첫 관측).
 
     state 갱신은 호출자가 전송 성공 후 commit()으로 한다(전송 실패 시 다음 실행에 재시도).
@@ -91,10 +106,14 @@ def due(groups, products, state, brands=None, require_genuine=(), now=None, repo
         if g.get('note'):
             lines.append(g['note'])
         lines.append('저가 상위:')
+        today = now.astimezone(timezone(timedelta(hours=9))).date().isoformat()
         for p in ms[:3]:
             lines.append('· ' + won(p['_price']) + ' ' + str(p.get('name'))[:55] + (' ' + str(p['weight_kg']) + 'kg' if p.get('weight_kg') else '')
                          + (' · 국내 정품·A/S 확인 필요' if p.get('_needs_genuine_check') else '')
                          + (' · RAM 미확인' if p.get('_ram_unknown') else ''))
+            est = coupon_estimate(p, coupon_events, today)
+            if est:
+                lines.append('  └ ' + est[2]['name'] + ' 쿠폰 ' + won(est[1]) + ' 적용 시 예상 ' + won(est[0]) + ' (' + est[2].get('coupon_note', '발급·적용 미확인') + ')')
         lines.append('가격비교 표시가 기준 · 쿠폰·카드·실결제 미확인')
         lines.append(str(best.get('url') or ''))
         alerts.append(('watch:' + g['id'] + ':' + str(base) + '>' + str(best['_price']) + ':' + now.date().isoformat(),
